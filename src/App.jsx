@@ -83,7 +83,9 @@ const EVENTS = [
   { y: 1973, t: "ELP「悪の教典#9」発表(恐怖の頭脳改革)", cat: "sf", ic: "music", n: "第3印象は人間とコンピューターの最終戦争を描き、加工されたコンピューターの声との対話で進行、最後は機械側の勝利宣言「I'm perfect. Are you?」で幕を閉じる。ロックがAIとの対話と反乱を正面から歌った最初期の作品で、エマーソンのMoogがコンピューターの声そのものを演じた。ギーガーのジャケットも含め、HALと2001以後の機械観を音楽に翻訳した金字塔。バビル二世アニメ化と同年という符合も面白い。", l: ["恐怖の頭脳改革", "エマーソン・レイク・アンド・パーマー"], q: "ELP 恐怖の頭脳改革 Karn Evil 9" },
   { y: 1973, t: "Xerox Alto(GUIの原点)/モトローラ携帯試作機", cat: "tech", ic: "computer", n: "GUI+マウス+イーサネット+レーザープリンタを1973年に揃えた伝説の機械。10年後のMacの直接の手本。同年のモトローラ携帯試作機は、STの通信機に憧れたクーパーの仕事。", l: ["en:Xerox Alto", "マーティン・クーパー"] },
   { y: 1975, t: "ユタ・ティーポット誕生(3DCGの標準テストモデル)", cat: "tech", ic: "computer", n: "ユタ大学のニューウェルが自宅の紅茶ポットをモデリングした曲面データが、以後半世紀にわたり3DCGのベンチマークに。レンダリング技術の進歩は常にこのポットで示されてきた。実物はコンピュータ歴史博物館に収蔵。トイ・ストーリーにもカメオ出演している、CG史上最も有名な食器。", l: ["ユタ・ティーポット"] },
+  { y: 1975, t: "ILM設立(モーションコントロール・カメラの開発)", cat: "tech", ic: "film", n: "ルーカスがスター・ウォーズの特撮のために自前で立ち上げた工房。ジョン・ダイクストラらが組み上げたダイクストラフレックスは、カメラの動きをコンピューターに記録して寸分たがわず再現できる装置で、同じ軌道で何度も撮って重ねることで宇宙戦闘の映像を成立させた。カメラワークを再現可能なデータとして扱う発想は、現在のモーションコントロール撮影、バーチャルプロダクションのバーチャルカメラ、ゲームエンジンのカメラ演出にまで一直線につながる。撮影機材の側にコンピューターが入った最初期の実例であり、同年のユタ・ティーポットと合わせて1975年は映像とコンピューターが握手した年である。", l: ["インダストリアル・ライト&マジック", "en:Dykstraflex"] },
   { y: 1976, t: "Apple I 発売", cat: "tech", ic: "computer", n: "ガレージから始まったPC産業の神話の起点。ウォズニアックの手作り基板は現在オークションで数千万円の値がつく。", l: ["Apple I"] },
+  { y: 1977, t: "スター・ウォーズ 公開(日本公開は1978年)", cat: "sf", ic: "film", n: "使い込まれて薄汚れた機械が飛び回る「used future」の美学で、SF映像の常識を塗り替えた。R2-D2は言葉を話さない自律ロボット、C-3POは「600万以上の形式のコミュニケーションに精通」した翻訳専門のドロイドで、機械が家族同然に同居する情景を世界中の子どもに配った。その映像を支えたのはILMのコンピューター制御カメラであり、作品そのものが計算機技術の産物でもある。そしてここで稼いだ資金と人材から生まれたルーカスフィルムのCG部門が、のちにピクサーになる——SFがCG産業を生んだ最も直接的な事例。", l: ["スター・ウォーズ エピソード4/新たなる希望", "インダストリアル・ライト&マジック"], q: "スター・ウォーズ エピソード4 新たなる希望" },
   { y: 1977, t: "Roland MC-8発売(マイクロコンポーザー)", cat: "tech", ic: "music", n: "マイコン制御のシーケンサーで、音楽演奏をデータ入力に置き換えた画期。松武秀樹がMoogモジュラー(通称タンス)と共にYMOのライブ・制作の心臓部として運用し、「打ち込み」という日本語と文化の起点になった。人間が弾かない音楽の制作様式はここから始まる。", l: ["ローランド・MC-8", "松武秀樹"] },
   { y: 1977, t: "コロコロコミック創刊/Apple II 発売", cat: "tech", ic: "computer", n: "Apple IIはPC大衆化の第一波で、VisiCalcを得て「仕事の道具」になった。同年創刊のコロコロは、ドラえもんを国民的存在に押し上げるメディアミックスの起点。", l: ["月刊コロコロコミック", "Apple II"] },
   { y: 1978, t: "YMO結成/クラフトワーク「人間解体」(コンピューターが音楽の主題に)", cat: "sf", ic: "music", n: "YMOのファーストにはその名も「COMPUTER GAME」が収録され、クラフトワークは人間と機械の融合を宣言。シンセサイザーとシーケンサーが「演奏」の定義を書き換え始めた年で、コンピューターが歌の題材と楽器の両方になった転換点。1973年のバビル二世主題歌群あたりを先駆に、アニメソングの世界にも電子的世界観が浸透していく。", l: ["イエロー・マジック・オーケストラ", "クラフトワーク"], q: "YMO イエロー・マジック・オーケストラ" },
@@ -93,6 +95,7 @@ const EVENTS = [
   { y: 1979, t: "JW-10発売(東芝。日本語ワープロ第一号)", cat: "tech", ic: "computer", n: "かな漢字変換の実用化により、日本語がキーボードで書ける言語になった記念碑。価格630万円。変換辞書と文節解析の研究はのちのIME、そして日本語LLMの遠い前史でもある。日本語とコンピューターの和解はここから始まった。", l: ["JW-10"] },
   { y: 1979, t: "機動戦士ガンダム/ドラえもん テレ朝版", cat: "sf", ic: "robot", n: "モビルスーツの教育型コンピューターは、パイロットの操縦を学習して補正する=運転支援AI・適応制御の先取り。アムロの成長と機体の学習が並走する構造も示唆的。", l: ["機動戦士ガンダム"], q: "機動戦士ガンダム" },
   { y: 1979, t: "PC-8001発売/ウォークマン発売", cat: "tech", ic: "computer", n: "国産PC普及の起点と、ウォークマンによる「音楽を持ち歩く」発明が同年。個人が技術を身につけて歩く時代の幕開け。", l: ["PC-8001", "ウォークマン"] },
+  { y: 1979, t: "ルーカスフィルムにコンピュータ部門設立(のちのピクサー)", cat: "tech", ic: "computer", n: "ルーカスがユタ大学出身のエド・キャットマルを招き、映画にコンピューターを持ち込むための部署を作った。ここでの成果がスタートレックII(1982)の「ジェネシス効果」——粒子システムとフラクタル地形による、劇場映画初の全編CGシーケンス——であり、レンダリング技術はのちの業界標準RenderManに、EditDroidはノンリニア編集の先駆になった。1984年にはディズニーを出たジョン・ラセターが合流する。スター・ウォーズの特撮部隊から、CG映画の本流が枝分かれした瞬間である。", l: ["ピクサー・アニメーション・スタジオ", "エドウィン・キャットマル"] },
   { y: 1980, t: "ジョン・レノン暗殺", cat: "sf", ic: "music", n: "ダブル・ファンタジーで復帰した矢先の12月8日、ニューヨークの自宅前で射殺された。40歳。しかしその声は技術によって歌い続ける——自宅カセットのデモが、1995年にはアナログ処理で、2023年にはAI音源分離で新曲としてよみがえった。「故人の声と技術」という現代の論点の、最も有名な事例の始まりでもある。", l: ["ジョン・レノン"], q: "ジョン・レノン ダブル・ファンタジー" },
   { y: 1980, t: "ネオコグニトロン発表(福島邦彦)", cat: "tech", ic: "ai", n: "視覚野の構造(単純細胞と複雑細胞の階層)に学んだ多層ニューラルネットで、畳み込みニューラルネットワーク(CNN)の直接の源流となった日本発の研究。ルカンのLeNet(1989)を経て、AlexNet(2012)で世界を変えるアーキテクチャの原型がここにある。深層学習の系譜図で、日本人の名前が根元近くに刻まれている代表例。", l: ["ネオコグニトロン", "福島邦彦 (工学者)"] },
   { y: 1981, t: "EMI(Emmy)開発開始(コープの自動作曲AI。90年代にバッハ様式作品で論争)", cat: "tech", ic: "ai", n: "コープの自動作曲システム。90年代にバッハ様式の生成曲が「本物と区別できない」と音楽学界で大論争になり、生成AI音楽の真正性・著作権論争を30年先取りした。", l: ["en:David Cope"] },
@@ -113,6 +116,7 @@ const EVENTS = [
   { y: 1985, t: "ガラパゴスの箱舟 刊行(ゴクビ/マンダラックス)", cat: "sf", ic: "book", n: "ゴクビ(極微)→マンダラックスは翻訳+百科+診断+生け花指南の掌サイズ万能機=スマホの予言。発明者が日本人技師ゼンジ・ヒログチという設定に、80年代の電子立国日本観が刻まれている。", l: ["ガラパゴスの箱舟"], q: "ガラパゴスの箱舟 ヴォネガット" },
   { y: 1985, t: "スーパーマリオブラザーズ/Windows 1.0", cat: "tech", ic: "gamepad", n: "マリオは「操作の気持ちよさ」自体の発明。Windows 1.0は当時失笑されたが、10年後にWin95で世界を取る。UIの試行錯誤の時代。", l: ["スーパーマリオブラザーズ"] },
   { y: 1985, t: "マックス・ヘッドルーム登場(AIのTV司会者)", cat: "sf", ic: "tv", n: "「コンピューター生成」という設定のバーチャルTVパーソナリティ(実際は特殊メイク+映像処理)。AIアバターが番組を仕切るという発想はVTuberとAIタレントの直系の先祖で、CG技術が追いついた40年後にようやく設定通りのものが作れるようになった。", l: ["マックス・ヘッドルーム"], q: "マックス・ヘッドルーム" },
+  { y: 1986, t: "ピクサー独立(ジョブズが買収)/短編「ルクソーJr.」", cat: "tech", ic: "computer", n: "アップルを追われたジョブズが約1000万ドルでルーカスフィルムのCG部門を買い取り、ピクサーとして独立させた。当初の本業はピクサー・イメージ・コンピュータという高価な画像処理機の販売で、CG短編はあくまでデモだった。その1本「ルクソーJr.」がアカデミー賞候補になり、電気スタンド2つに演技をさせられることを世界に示す。ハード事業は行き詰まるがRenderManと短編で鍛えた演出力が9年後のトイ・ストーリーに結実し、結果としてジョブズのアップル復帰の資金源にもなった。", l: ["ピクサー・アニメーション・スタジオ", "en:Luxo Jr."], q: "ピクサー ルクソーJr" },
   { y: 1986, t: "スタートレックIV(スコッティとMac Plus)", cat: "sf", ic: "film", n: "23世紀のスコッティがMac Plusのマウスに「Hello, computer」と話しかけ、通じないと知るや猛速タイピング。音声UIが当然の未来から見た1980年代という構図は、Siri以降に再評価された名場面。", l: ["スタートレックIV 故郷への長い道"], q: "スタートレックIV 故郷への長い道" },
   { y: 1986, t: "ニューロマンサー 邦訳刊行", cat: "sf", ic: "book", n: "黒丸尚の訳語群(電脳空間など)が日本のサイバーパンク語彙を作った。攻殻機動隊への影響は士郎正宗本人も認めるところで、日本語SFの文体にも大きな足跡を残した。", l: ["ニューロマンサー", "黒丸尚"], q: "ニューロマンサー ギブスン" },
   { y: 1986, t: "バックプロパゲーション普及(ヒントンら)", cat: "tech", ic: "ai", n: "多層ニューラルネットを学習させる誤差逆伝播法が、ラメルハート、ヒントン、ウィリアムズの論文で一気に広まり、第二次ニューラルネットブームに火を付けた。数理的な先行研究には甘利俊一(1967)らがおり、アイデア自体は再発見の歴史でもある。このブームも90年代に一度冷めるが、ヒントンは諦めずに続け、四半世紀後の主役になる。", l: ["バックプロパゲーション", "ジェフリー・ヒントン"] },
@@ -134,7 +138,7 @@ const EVENTS = [
   { y: 1993, t: "ジュラシック・パーク 公開(SGIワークステーション登場)", cat: "sf", ic: "film", n: "SGIのワークステーションで恐竜をレンダリングし、CG産業離陸の号砲となった。少女が「これUNIXよ!知ってる!」と操作する画面は、IRIX実装の実在3DファイルブラウザFSN。", l: ["ジュラシック・パーク", "en:Fsn (file manager)"], q: "ジュラシック・パーク" },
   { y: 1993, t: "CU-SeeMe公開(コーネル大。ネットビデオ会議の草分け)", cat: "tech", ic: "video", n: "白黒・切手サイズの映像でも、インターネット越しに相手の顔が見えた衝撃は大きかった。Zoomまで27年続くネットビデオ会議史の始点。", l: ["en:CU-SeeMe"] },
   { y: 1994, t: "セガサターン発売/プレイステーション発売", cat: "tech", ic: "gamepad", n: "32bit次世代機戦争の開幕。3Dポリゴン描画が家庭に来た。ソニーのPS参入は家電メーカーのコンピューターエンタメ宣言でもあった。", l: ["セガサターン", "PlayStation (ゲーム機)"] },
-  { y: 1995, t: "トイ・ストーリー 公開(世界初の長編フルCG映画)", cat: "sf", ic: "film", n: "ピクサーが証明した「全編CGで劇映画が成立する」という事実が、映像産業の生産様式を根本から変えた。ジョブズ復帰前夜のもうひとつのApple物語でもある。ユタ・ティーポット(1975)から20年でティーポットが感情を持つおもちゃになった、と言うとCG史の圧縮になる。", l: ["トイ・ストーリー", "ピクサー・アニメーション・スタジオ"], q: "トイ・ストーリー" },
+  { y: 1995, t: "トイ・ストーリー 公開(世界初の長編フルCG映画)", cat: "sf", ic: "film", n: "ピクサーが証明した「全編CGで劇映画が成立する」という事実が、映像産業の生産様式を根本から変えた。スター・ウォーズの特撮工房から枝分かれしたCG部門(1979)が、独立(1986)から9年でここに到達した計算になる。ジョブズ復帰前夜のもうひとつのApple物語でもある。ユタ・ティーポット(1975)から20年でティーポットが感情を持つおもちゃになった、と言うとCG史の圧縮になる。", l: ["トイ・ストーリー", "ピクサー・アニメーション・スタジオ"], q: "トイ・ストーリー" },
   { y: 1995, t: "新世紀エヴァンゲリオン 放映(MAGIシステム)", cat: "sf", ic: "tv", n: "三賢人MAGIは開発者の人格(科学者・母・女)を移植した3基の合議制AI。単一の全能AIではなく複数AIの多数決という設計は、現代のアンサンブル学習やマルチエージェント、AI安全性における冗長化の発想を先取りしている。ハッキング防衛戦(イロウル戦)はサイバーセキュリティ描写としても記憶される。", l: ["新世紀エヴァンゲリオン"], q: "新世紀エヴァンゲリオン" },
   { y: 1995, t: "GHOST IN THE SHELL/攻殻機動隊 公開", cat: "sf", ic: "film", n: "押井守版が全米ビデオチャートを制し、ウォシャウスキー姉妹に直撃。日本アニメが世界のSF映像の上流工程になったことを証明した作品。", l: ["GHOST IN THE SHELL/攻殻機動隊"], q: "GHOST IN THE SHELL 攻殻機動隊" },
   { y: 1995, t: "JM 公開(ヘッドセット+グローブで電脳空間ダイブ)", cat: "sf", ic: "hmd", n: "ギブスン原作(記憶屋ジョニイ)の実写化第一号。ヘッドセット+データグローブで電脳空間にダイブする描写は、90年代のVRパブリックイメージを決定づけた。", l: ["JM (映画)"], q: "JM キアヌ・リーブス 映画" },
@@ -217,26 +221,55 @@ const EVENTS = [
 // ---- 学齢期の区分(進路・浪人・留年で可変) ----
 const PATHS = {
   hs_job: { label: "高卒で就職", years: 0 },
+  kosen: { label: "高専(5年)", years: 5, kosen: true },
   vocational: { label: "短大・専門(2年)", years: 2 },
   univ: { label: "大学(4年)", years: 4 },
+  univ6: { label: "6年制大学(医・歯・薬・獣医)", years: 6 },
   masters: { label: "修士まで(大学+2年)", years: 4, ms: true },
   phd: { label: "博士まで(大学+5年)", years: 4, ms: true, dr: true },
 };
 
+const ADULT_STAGE = { key: "adult", label: "社会人", color: "#37414f", bg: "#eef1f5" };
+
+// 「社会人になった年度」が指定されたら、そこで学齢の帯を打ち切って社会人に切り替える
+function applyAdultSage(stages, adultSage) {
+  if (adultSage == null) return stages;
+  const out = [];
+  for (const s of stages) {
+    if (s.key === "adult") continue;
+    if (s.from >= adultSage) continue; // その進路に到達する前に社会人になった
+    out.push({ ...s, to: Math.min(s.to, adultSage - 1) });
+  }
+  const lastTo = out.length ? out[out.length - 1].to : -Infinity;
+  if (Number.isFinite(lastTo) && lastTo < adultSage - 1) {
+    // 卒業から就職までに間がある場合(留学・就職浪人・フリーランス期間など)
+    out.push({ key: "gap", label: "社会人になる前", from: lastTo + 1, to: adultSage - 1, color: "#7a6a55", bg: "#f5f1e8" });
+  }
+  out.push({ ...ADULT_STAGE, from: adultSage, to: Infinity });
+  return out;
+}
+
 // from/toは「コホート年齢」(誕生年度基準。早生まれは前年度の学年に所属)
-function buildStages(ronin, ryunen, path) {
+function buildStages(ronin, ryunen, path, adultSage) {
   const stages = [
     { key: "pre", label: "生まれる前", from: -Infinity, to: -Infinity, color: "#8a8f98", bg: "#f1f2f4" },
     { key: "infant", label: "幼少期", from: -Infinity, to: 6, color: "#b0771e", bg: "#fdf3e0" },
     { key: "elem", label: "小学生", from: 7, to: 12, color: "#c2452d", bg: "#fdeae5" },
     { key: "jhs", label: "中学生", from: 13, to: 15, color: "#1f7a4d", bg: "#e6f5ec" },
-    { key: "hs", label: "高校生", from: 16, to: 18, color: "#1e5fa8", bg: "#e7f0fb" },
   ];
   const cfg = PATHS[path];
+  // 高専は中学卒業後の5年間。高校と大学前半をまたぐ独自の帯になる
+  if (cfg.kosen) {
+    const end = 16 + cfg.years - 1 + ryunen;
+    stages.push({ key: "kosen", label: ryunen > 0 ? "高専生(留年込み)" : "高専生", from: 16, to: end, color: "#0f6f8a", bg: "#e3f1f5" });
+    stages.push({ ...ADULT_STAGE, from: end + 1, to: Infinity });
+    return applyAdultSage(stages, adultSage);
+  }
+  stages.push({ key: "hs", label: "高校生", from: 16, to: 18, color: "#1e5fa8", bg: "#e7f0fb" });
   let cursor = 19;
   if (cfg.years === 0) {
-    stages.push({ key: "adult", label: "社会人", from: cursor, to: Infinity, color: "#37414f", bg: "#eef1f5" });
-    return stages;
+    stages.push({ ...ADULT_STAGE, from: cursor, to: Infinity });
+    return applyAdultSage(stages, adultSage);
   }
   if (ronin > 0) {
     stages.push({ key: "ronin", label: "浪人", from: cursor, to: cursor + ronin - 1, color: "#a8322f", bg: "#fbe9e9" });
@@ -254,17 +287,24 @@ function buildStages(ronin, ryunen, path) {
     stages.push({ key: "dr", label: "大学院(博士)", from: cursor, to: cursor + 2, color: "#31589c", bg: "#e5ecf8" });
     cursor += 3;
   }
-  stages.push({ key: "adult", label: "社会人", from: cursor, to: Infinity, color: "#37414f", bg: "#eef1f5" });
-  return stages;
+  stages.push({ ...ADULT_STAGE, from: cursor, to: Infinity });
+  return applyAdultSage(stages, adultSage);
 }
 
-function makeGradeLabel(ronin, ryunen, path) {
+function makeGradeLabel(ronin, ryunen, path, adultSage) {
   const cfg = PATHS[path];
   return (age, sage) => {
     if (age < 0) return `${-age}年前`;
+    if (adultSage != null && sage >= adultSage) return `${age}歳`;
     if (sage <= 6) return `${age}歳`;
     if (sage <= 12) return `小${sage - 6}`;
     if (sage <= 15) return `中${sage - 12}`;
+    if (cfg.kosen) {
+      const k = sage - 15;
+      if (k <= cfg.years) return `高専${k}`;
+      if (k <= cfg.years + ryunen) return `留年`;
+      return `${age}歳`;
+    }
     if (sage <= 18) return `高${sage - 15}`;
     if (cfg.years === 0) return `${age}歳`;
     const schoolStart = 19 + ronin;
@@ -302,6 +342,7 @@ export default function App() {
   const [ronin, setRonin] = useState(SAVED.ronin ?? 0);
   const [ryunen, setRyunen] = useState(SAVED.ryunen ?? 0);
   const [path, setPath] = useState(SAVED.path ?? "univ");
+  const [adultY, setAdultY] = useState(SAVED.adultY ?? ""); // 社会人になった年度(空=進路から自動計算)
   const [myEvents, setMyEvents] = useState(SAVED.my ?? []);
   const [showSF, setShowSF] = useState(true);
   const [showTech, setShowTech] = useState(true);
@@ -311,8 +352,8 @@ export default function App() {
   const [newT, setNewT] = useState("");
 
   useEffect(() => {
-    store.save({ birth, month, ronin, ryunen, path, my: myEvents });
-  }, [birth, month, ronin, ryunen, path, myEvents]);
+    store.save({ birth, month, ronin, ryunen, path, adultY, my: myEvents });
+  }, [birth, month, ronin, ryunen, path, adultY, myEvents]);
 
   const addMy = () => {
     const y = Number(newY);
@@ -331,9 +372,12 @@ export default function App() {
   };
 
   const grouped = useMemo(() => {
-    const stages = buildStages(ronin, ryunen, path);
-    const gradeLabel = makeGradeLabel(ronin, ryunen, path);
     const cohortBirth = month >= 1 && month <= 3 ? birth - 1 : birth; // 未設定(0)は4〜12月生まれと同じ扱い
+    const ay = Number(adultY);
+    const adultSage =
+      Number.isInteger(ay) && ay >= 1930 && ay <= 2100 ? Math.max(15, ay - cohortBirth) : null;
+    const stages = buildStages(ronin, ryunen, path, adultSage);
+    const gradeLabel = makeGradeLabel(ronin, ryunen, path, adultSage);
     const stageOf = (age, sage) =>
       age < 0 ? stages[0] : stages.slice(1).find((s) => sage >= s.from && sage <= s.to);
     const RANK = { me: 0, sf: 1, tech: 2 };
@@ -351,7 +395,7 @@ export default function App() {
       else groups.push({ stage: st, items: [ev] });
     }
     return { groups, gradeLabel };
-  }, [birth, month, ronin, ryunen, path, myEvents, showSF, showTech, showMe]);
+  }, [birth, month, ronin, ryunen, path, adultY, myEvents, showSF, showTech, showMe]);
 
   const font =
     '"Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic Medium", "Noto Sans JP", sans-serif';
@@ -432,19 +476,51 @@ export default function App() {
               ))}
             </select>
           </div>
-          {path !== "hs_job" && [
-            ["浪人", ronin, setRonin],
-            ["留年", ryunen, setRyunen],
-          ].map(([label, val, set]) => (
-            <div key={label} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <label style={{ fontSize: 13, fontWeight: 700 }}>{label}</label>
-              <button onClick={() => set(Math.max(0, val - 1))} style={btnStyle} aria-label={`${label}を1年減らす`}>−</button>
-              <span style={{ fontFamily: mono, fontSize: 18, fontWeight: 700, minWidth: 40, textAlign: "center" }}>
-                {val}年
-              </span>
-              <button onClick={() => set(Math.min(5, val + 1))} style={btnStyle} aria-label={`${label}を1年増やす`}>＋</button>
-            </div>
-          ))}
+          {path !== "hs_job" &&
+            [
+              ["浪人", ronin, setRonin],
+              ["留年", ryunen, setRyunen],
+            ]
+              // 高専は中学卒業後にそのまま入学するため浪人の欄は出さない
+              .filter(([label]) => !(PATHS[path].kosen && label === "浪人"))
+              .map(([label, val, set]) => (
+                <div key={label} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <label style={{ fontSize: 13, fontWeight: 700 }}>{label}</label>
+                  <button onClick={() => set(Math.max(0, val - 1))} style={btnStyle} aria-label={`${label}を1年減らす`}>−</button>
+                  <span style={{ fontFamily: mono, fontSize: 18, fontWeight: 700, minWidth: 40, textAlign: "center" }}>
+                    {val}年
+                  </span>
+                  <button onClick={() => set(Math.min(5, val + 1))} style={btnStyle} aria-label={`${label}を1年増やす`}>＋</button>
+                </div>
+              ))}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <label style={{ fontSize: 13, fontWeight: 700 }}>社会人になった年度</label>
+            <input
+              type="number" inputMode="numeric" placeholder="自動"
+              value={adultY}
+              onChange={(e) => setAdultY(e.target.value)}
+              style={{
+                fontFamily: mono, fontSize: 14, width: 84, padding: "7px 8px",
+                borderRadius: 8, border: "1px solid #d5d8dd",
+              }}
+              aria-label="社会人になった年度(西暦)"
+            />
+            {adultY !== "" && (
+              <button
+                onClick={() => setAdultY("")}
+                style={{
+                  fontFamily: font, fontSize: 12, fontWeight: 700, cursor: "pointer",
+                  padding: "6px 12px", borderRadius: 999,
+                  border: "1px solid #d5d8dd", background: "#fff", color: "#6b7280",
+                }}
+              >
+                自動に戻す
+              </button>
+            )}
+          </div>
+          <div style={{ fontSize: 11, color: "#8a8f98", width: "100%", marginTop: -6 }}>
+            上の進路に当てはまらない場合(中退・編入・専攻科・留学・転職前の空白期間など)は、就職した年度を直接指定すると、そこから先が「社会人」になります。
+          </div>
         </div>
 
         {/* 自分の出来事 */}
@@ -713,7 +789,7 @@ export default function App() {
         ))}
 
         <footer style={{ fontSize: 11, color: "#8a8f98", marginTop: 28, lineHeight: 1.8 }}>
-          学齢は誕生年(月は任意入力)からの学年計算。月を入れると1〜3月の早生まれが1つ上の学年として扱われます(未設定時は4〜12月生まれ相当の概算。日単位の区切りは考慮せず)。各年の出来事は、その年の4月に始まる学年に割り当てています。進路・浪人・留年を設定すると、それ以降の帯がその分だけ変わります。「自分の出来事」はこの端末のブラウザ内にのみ保存され、どこにも送信されません。
+          学齢は誕生年(月は任意入力)からの学年計算。月を入れると1〜3月の早生まれが1つ上の学年として扱われます(未設定時は4〜12月生まれ相当の概算。日単位の区切りは考慮せず)。各年の出来事は、その年の4月に始まる学年に割り当てています。進路・浪人・留年を設定すると、それ以降の帯がその分だけ変わります。高専は中学卒業後の5年間を一続きの帯として扱います。「社会人になった年度」を入れた場合は進路の計算より優先され、その年度から社会人、卒業から就職までに間があればその期間を「社会人になる前」として表示します。「自分の出来事」はこの端末のブラウザ内にのみ保存され、どこにも送信されません。
           アイコン色:赤=SF作品、青=実テクノロジー。アイコンは全てオリジナルのラインアイコン。各行をタップすると、現代技術とのつながりを解説する蘊蓄コラムが開きます。コラム末尾の「W:」はWikipediaの関連項目へのリンク、「Amazonで探す/YouTubeで探す」は作品の検索結果へのリンクです(在庫・配信状況は検索先でご確認ください)。
           作品年は原則として発表・放映開始年(日本導入年が別にある場合は両方掲載)。
         </footer>
