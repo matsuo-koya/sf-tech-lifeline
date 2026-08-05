@@ -494,6 +494,7 @@ export default function App() {
             <input
               type="number" inputMode="numeric" placeholder="西暦"
               value={newY} onChange={(e) => setNewY(e.target.value)}
+              onKeyDown={onEnter(addMy)}
               style={{
                 fontFamily: mono, fontSize: 14, width: 74, padding: "7px 8px",
                 borderRadius: 8, border: "1px solid #d5d8dd",
@@ -503,7 +504,7 @@ export default function App() {
             <input
               type="text" placeholder="初めてのコンピューター、結婚、長女誕生など"
               value={newT} onChange={(e) => setNewT(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") addMy(); }}
+              onKeyDown={onEnter(addMy)}
               style={{
                 fontFamily: font, fontSize: 14, flex: 1, minWidth: 180, padding: "7px 10px",
                 borderRadius: 8, border: "1px solid #d5d8dd",
@@ -871,6 +872,13 @@ const btnStyle = {
   width: 34, height: 34, borderRadius: 8, border: "1px solid #d5d8dd",
   background: "#fff", fontSize: 18, fontWeight: 700, cursor: "pointer",
   color: "#22272e", lineHeight: 1,
+};
+
+// 日本語入力の変換確定のEnterで実行してしまわないようにする
+// (変換中はisComposingがtrue。古いSafari等のためkeyCode 229も見る)
+const onEnter = (fn) => (e) => {
+  if (e.key !== "Enter" || e.nativeEvent?.isComposing || e.keyCode === 229) return;
+  fn();
 };
 
 const miniBtn = {
