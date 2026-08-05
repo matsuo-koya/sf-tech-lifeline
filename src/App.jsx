@@ -173,6 +173,57 @@ function makeGradeLabel(ronin, ryunen, path, adultSage) {
   };
 }
 
+// ---- 共有 ----
+// ローカル開発時は公開URLを共有する(localhostのリンクを配ってしまわないように)
+const SHARE_URL = (() => {
+  const fallback = "https://matsuo-koya.github.io/sf-tech-lifeline/";
+  if (typeof window === "undefined") return fallback;
+  const { origin, pathname, hostname } = window.location;
+  return /localhost|127\.0\.0\.1|^$/.test(hostname) ? fallback : origin + pathname;
+})();
+const HASHTAG = "#SFライフライン";
+
+function ShareBar({ text, url = SHARE_URL, compact = false, color = "#37414f" }) {
+  const [copied, setCopied] = useState(false);
+  const t = encodeURIComponent(text);
+  const u = encodeURIComponent(url);
+  const targets = [
+    ["X", `https://x.com/intent/post?text=${t}&url=${u}`],
+    ["Bluesky", `https://bsky.app/intent/compose?text=${encodeURIComponent(`${text} ${url}`)}`],
+    ...(compact
+      ? []
+      : [
+          ["Facebook", `https://www.facebook.com/sharer/sharer.php?u=${u}`],
+          ["LINE", `https://social-plugins.line.me/lineit/share?url=${u}&text=${t}`],
+        ]),
+  ];
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(`${text} ${url}`);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    } catch {}
+  };
+  const base = {
+    fontSize: compact ? 11 : 11.5, fontWeight: 700, textDecoration: "none",
+    borderRadius: 999, padding: compact ? "3px 10px" : "4px 12px",
+    border: `1px solid ${color}44`, background: "#ffffffaa", color,
+    cursor: "pointer", lineHeight: 1.6, fontFamily: "inherit",
+  };
+  return (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
+      {targets.map(([label, href]) => (
+        <a key={label} href={href} target="_blank" rel="noopener noreferrer" style={base}>
+          {label}で共有
+        </a>
+      ))}
+      <button onClick={copy} style={base}>
+        {copied ? "コピーしました" : "リンクをコピー"}
+      </button>
+    </div>
+  );
+}
+
 const CAT = {
   sf: { label: "SF作品", color: "#c2452d" },
   tech: { label: "実テクノロジー", color: "#1e5fa8" },
@@ -234,6 +285,17 @@ export default function App() {
     });
   };
 
+  // ?e=<項目ID> で共有されたリンクは、その項目を開いた状態で表示する
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get("e");
+    if (!id) return;
+    setOpen((prev) => new Set(prev).add(id));
+    const timer = setTimeout(() => {
+      document.getElementById(`ev-${id}`)?.scrollIntoView({ block: "center" });
+    }, 120);
+    return () => clearTimeout(timer);
+  }, []);
+
   const grouped = useMemo(() => {
     const cohortBirth = month >= 1 && month <= 3 ? birth - 1 : birth; // 未設定(0)は4〜12月生まれと同じ扱い
     const ay = Number(adultY);
@@ -277,6 +339,11 @@ export default function App() {
           <h1 style={{ fontSize: 24, fontWeight: 800, margin: 0, lineHeight: 1.35 }}>
             あのSFに、何年生で出会ったか
           </h1>
+          <div style={{ marginTop: 10 }}>
+            <ShareBar
+              text={`あのSFに、何年生で出会ったか——SF・コンピューター技術ライフライン(${EVENTS.length}項目) ${HASHTAG}`}
+            />
+          </div>
         </header>
 
         {/* 生年入力 */}
@@ -574,8 +641,13 @@ export default function App() {
                 }
                 const id = `${ev.y}-${ev.t}`;
                 const isOpen = open.has(id);
+                const grade = grouped.gradeLabel(ev.age, ev.sage);
+                const shareText =
+                  (ev.age < 0
+                    ? `${ev.y}年(生まれる前)`
+                    : `${ev.y}年・${grade}のとき`) + `:${ev.t} ${HASHTAG}`;
                 return (
-                  <li key={i} style={{ borderBottom: "1px solid #ececea" }}>
+                  <li key={i} id={`ev-${id}`} style={{ borderBottom: "1px solid #ececea" }}>
                     <button
                       onClick={() => toggle(id)}
                       aria-expanded={isOpen}
@@ -602,7 +674,7 @@ export default function App() {
                           padding: "3px 8px",
                         }}
                       >
-                        {grouped.gradeLabel(ev.age, ev.sage)}
+                        {grade}
                       </span>
                       <Icon name={ev.ic} color={CAT[ev.cat].color} />
                       <span style={{ fontSize: 14, lineHeight: 1.55, flex: 1 }}>{ev.t}</span>
@@ -698,6 +770,14 @@ export default function App() {
                             })}
                           </div>
                         )}
+                        <div style={{ marginTop: 10, paddingTop: 8, borderTop: "1px dashed #d5d8dd" }}>
+                          <ShareBar
+                            compact
+                            color={CAT[ev.cat].color}
+                            text={shareText}
+                            url={`${SHARE_URL}?e=${encodeURIComponent(id)}`}
+                          />
+                        </div>
                       </div>
                     )}
                   </li>
@@ -706,6 +786,19 @@ export default function App() {
             </ul>
           </section>
         ))}
+
+        <div
+          style={{
+            display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap",
+            background: "#fff", border: "1px solid #e2e4e8", borderRadius: 12,
+            padding: "12px 16px", marginTop: 8,
+          }}
+        >
+          <span style={{ fontSize: 13, fontWeight: 700 }}>この年表を共有</span>
+          <ShareBar
+            text={`あのSFに、何年生で出会ったか——SF・コンピューター技術ライフライン(${EVENTS.length}項目) ${HASHTAG}`}
+          />
+        </div>
 
         <footer style={{ fontSize: 11, color: "#8a8f98", marginTop: 28, lineHeight: 1.8 }}>
           学齢は誕生年(月は任意入力)からの学年計算。月を入れると1〜3月の早生まれが1つ上の学年として扱われます(未設定時は4〜12月生まれ相当の概算。日単位の区切りは考慮せず)。各年の出来事は、その年の4月に始まる学年に割り当てています。進路・浪人・留年を設定すると、それ以降の帯がその分だけ変わります。高専は中学卒業後の5年間を一続きの帯として扱います。「社会人になった年度」を入れた場合は進路の計算より優先され、その年度から社会人、卒業から就職までに間があればその期間を「社会人になる前」として表示します。「自分の出来事」はこの端末のブラウザ内にのみ保存され、どこにも送信されません。
