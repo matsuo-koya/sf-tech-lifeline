@@ -824,6 +824,28 @@ export default function App() {
         >
           <span style={{ fontSize: 13, fontWeight: 700 }}>この年表を共有</span>
           <a
+            href="https://www.techno-edge.net/article/2026/08/05/5365.html"
+            target="_blank" rel="noopener noreferrer"
+            style={{
+              fontSize: 11.5, fontWeight: 700, textDecoration: "none",
+              borderRadius: 999, padding: "4px 12px",
+              border: "1px solid #b0771e", background: "#b0771e", color: "#fff",
+            }}
+          >
+            この年表の解説記事(CloseBox)
+          </a>
+          <a
+            href="https://www.techno-edge.net/article/2026/08/04/5360.html"
+            target="_blank" rel="noopener noreferrer"
+            style={{
+              fontSize: 11.5, fontWeight: 700, textDecoration: "none",
+              borderRadius: 999, padding: "4px 12px",
+              border: "1px solid #b0771e44", background: "#fdf3e0", color: "#8a5a12",
+            }}
+          >
+            公開時の記事
+          </a>
+          <a
             href="https://www.techno-edge.net/special/388/recent/CloseBox"
             target="_blank" rel="noopener noreferrer"
             style={{
@@ -852,7 +874,23 @@ export default function App() {
             >
               CloseBox
             </a>
-            (松尾公也)のために、Claudeとの対話(vibe coding)で制作しました。制作の経緯や項目の背景は連載記事をご覧ください。ソースは{" "}
+            (松尾公也)のために、Claudeとの対話(vibe coding)で制作しました。制作の経緯や項目の背景は{" "}
+            <a
+              href="https://www.techno-edge.net/article/2026/08/04/5360.html"
+              target="_blank" rel="noopener noreferrer"
+              style={{ color: "#b0771e", fontWeight: 700 }}
+            >
+              公開時の記事(8月4日)
+            </a>
+            と{" "}
+            <a
+              href="https://www.techno-edge.net/article/2026/08/05/5365.html"
+              target="_blank" rel="noopener noreferrer"
+              style={{ color: "#b0771e", fontWeight: 700 }}
+            >
+              3倍に育てた話(8月5日)
+            </a>
+            をご覧ください。ソースは{" "}
             <a
               href="https://github.com/matsuo-koya/sf-tech-lifeline"
               target="_blank" rel="noopener noreferrer"
