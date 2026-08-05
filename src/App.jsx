@@ -795,6 +795,17 @@ export default function App() {
           }}
         >
           <span style={{ fontSize: 13, fontWeight: 700 }}>この年表を共有</span>
+          <a
+            href="https://www.techno-edge.net/special/388/recent/CloseBox"
+            target="_blank" rel="noopener noreferrer"
+            style={{
+              fontSize: 11.5, fontWeight: 700, textDecoration: "none",
+              borderRadius: 999, padding: "4px 12px",
+              border: "1px solid #b0771e44", background: "#fdf3e0", color: "#8a5a12",
+            }}
+          >
+            連載「CloseBox」を読む
+          </a>
           <ShareBar
             text={`あのSFに、何年生で出会ったか——SF・コンピューター技術ライフライン(${EVENTS.length}項目) ${HASHTAG}`}
           />
@@ -804,6 +815,25 @@ export default function App() {
           学齢は誕生年(月は任意入力)からの学年計算。月を入れると1〜3月の早生まれが1つ上の学年として扱われます(未設定時は4〜12月生まれ相当の概算。日単位の区切りは考慮せず)。各年の出来事は、その年の4月に始まる学年に割り当てています。進路・浪人・留年を設定すると、それ以降の帯がその分だけ変わります。高専は中学卒業後の5年間を一続きの帯として扱います。「社会人になった年度」を入れた場合は進路の計算より優先され、その年度から社会人、卒業から就職までに間があればその期間を「社会人になる前」として表示します。「自分の出来事」はこの端末のブラウザ内にのみ保存され、どこにも送信されません。
           アイコン色:赤=SF作品、青=実テクノロジー、紫=音楽・カルチャー。実テクノロジーと音楽は「興味のある分野」でさらに絞り込めます(各行の右端が分野名)。アイコンは全てオリジナルのラインアイコン。各行をタップすると、現代技術とのつながりを解説する蘊蓄コラムが開きます。コラム末尾の「W:」はWikipediaの関連項目、「▶」は外部の解説記事(CPU関連は大原雄介氏のASCII.jp連載)へのリンク、「Amazonで探す/YouTubeで探す」は作品の検索結果へのリンクです(在庫・配信状況は検索先でご確認ください)。
           作品年は原則として発表・放映開始年(日本導入年が別にある場合は両方掲載)。
+          <div style={{ marginTop: 10 }}>
+            このアプリは、テクノエッジの連載{" "}
+            <a
+              href="https://www.techno-edge.net/special/388/recent/CloseBox"
+              target="_blank" rel="noopener noreferrer"
+              style={{ color: "#b0771e", fontWeight: 700 }}
+            >
+              CloseBox
+            </a>
+            (松尾公也)のために、Claudeとの対話(vibe coding)で制作しました。制作の経緯や項目の背景は連載記事をご覧ください。ソースは{" "}
+            <a
+              href="https://github.com/matsuo-koya/sf-tech-lifeline"
+              target="_blank" rel="noopener noreferrer"
+              style={{ color: "#b0771e", fontWeight: 700 }}
+            >
+              GitHub
+            </a>
+            で公開しています。
+          </div>
         </footer>
       </div>
     </div>
