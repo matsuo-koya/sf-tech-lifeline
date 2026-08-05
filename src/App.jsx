@@ -183,6 +183,32 @@ const SHARE_URL = (() => {
 })();
 const HASHTAG = "#SFライフライン";
 
+// 項目の識別子。共有URLに載るのでASCIIのみ(全角カッコや空白が入ると、
+// 貼り付け先の自動リンク化で末尾が欠けてリンクが壊れる)
+const eid = (e) => {
+  const s = `${e.y}-${e.t}`;
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
+  return `${e.y}-${h.toString(36)}`;
+};
+
+// ?e= の値から項目を探す。旧形式(年-タイトル)のリンクも救済する。
+// 旧形式は括弧や空白を含むため、貼り付け先で末尾が欠けたり全角に変換されることがあるので、
+// NFKC正規化して空白を落としたうえで前方一致も見る
+const norm = (s) => s.normalize("NFKC").replace(/\s+/g, "").toLowerCase();
+const findByShareParam = (raw) => {
+  if (!raw) return null;
+  let dec = raw;
+  try { dec = decodeURIComponent(raw); } catch {}
+  const key = norm(dec);
+  return (
+    EVENTS.find((e) => eid(e) === dec) ||
+    EVENTS.find((e) => norm(`${e.y}-${e.t}`) === key) ||
+    EVENTS.find((e) => key.length > 6 && norm(`${e.y}-${e.t}`).startsWith(key)) ||
+    null
+  );
+};
+
 function ShareBar({ text, url = SHARE_URL, compact = false, color = "#37414f" }) {
   const [copied, setCopied] = useState(false);
   const t = encodeURIComponent(text);
@@ -287,12 +313,13 @@ export default function App() {
 
   // ?e=<項目ID> で共有されたリンクは、その項目を開いた状態で表示する
   useEffect(() => {
-    const id = new URLSearchParams(window.location.search).get("e");
-    if (!id) return;
+    const ev = findByShareParam(new URLSearchParams(window.location.search).get("e"));
+    if (!ev) return;
+    const id = eid(ev);
     setOpen((prev) => new Set(prev).add(id));
     const timer = setTimeout(() => {
       document.getElementById(`ev-${id}`)?.scrollIntoView({ block: "center" });
-    }, 120);
+    }, 150);
     return () => clearTimeout(timer);
   }, []);
 
@@ -564,7 +591,7 @@ export default function App() {
           ))}
           <span style={{ flex: 1 }} />
           <button
-            onClick={() => setOpen(new Set(EVENTS.map((e) => `${e.y}-${e.t}`)))}
+            onClick={() => setOpen(new Set(EVENTS.map(eid)))}
             style={{
               fontFamily: font, fontSize: 12, fontWeight: 700, cursor: "pointer",
               padding: "6px 14px", borderRadius: 999,
@@ -639,7 +666,7 @@ export default function App() {
                     </li>
                   );
                 }
-                const id = `${ev.y}-${ev.t}`;
+                const id = eid(ev);
                 const isOpen = open.has(id);
                 const grade = grouped.gradeLabel(ev.age, ev.sage);
                 const shareText =
