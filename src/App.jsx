@@ -209,8 +209,23 @@ const findByShareParam = (raw) => {
   );
 };
 
-function ShareBar({ text, url = SHARE_URL, compact = false, color = "#37414f" }) {
+// Xの文字数計算に合わせた重み(全角2・半角1)。URLは長さに関わらず23として扱われる
+const weigh = (s) => [...s].reduce((n, c) => n + (/[\x00-\x7e]/.test(c) ? 1 : 2), 0);
+const clipTo = (s, budget) => {
+  if (weigh(s) <= budget) return s;
+  let out = "", w = 0;
+  for (const c of [...s]) {
+    const cw = /[\x00-\x7e]/.test(c) ? 1 : 2;
+    if (w + cw > budget - 2) break; // 末尾の「…」の分を残す
+    out += c;
+    w += cw;
+  }
+  return out.replace(/[、。]$/, "") + "…";
+};
+
+function ShareBar({ text, url = SHARE_URL, compact = false, color = "#37414f", note }) {
   const [copied, setCopied] = useState(false);
+  const [copiedAll, setCopiedAll] = useState(false);
   const t = encodeURIComponent(text);
   const u = encodeURIComponent(url);
   const targets = [
@@ -223,11 +238,16 @@ function ShareBar({ text, url = SHARE_URL, compact = false, color = "#37414f" })
           ["LINE", `https://social-plugins.line.me/lineit/share?url=${u}&text=${t}`],
         ]),
   ];
-  const copy = async () => {
+  // 解説つきの投稿文。280(Xの上限)からURL分23と本文を引いた残りに解説を収める
+  const head = text.replace(` ${HASHTAG}`, "");
+  const room = 280 - 23 - weigh(head) - weigh(HASHTAG) - 5; // 改行3つ分と余裕
+  const noteText = note ? `${head}\n\n${clipTo(note, Math.max(40, room))}\n${HASHTAG}` : "";
+  const fullText = note ? `${head}\n\n${note}\n${HASHTAG}` : "";
+  const copyTo = async (s, setter) => {
     try {
-      await navigator.clipboard.writeText(`${text} ${url}`);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1600);
+      await navigator.clipboard.writeText(s);
+      setter(true);
+      setTimeout(() => setter(false), 1600);
     } catch {}
   };
   const base = {
@@ -237,15 +257,38 @@ function ShareBar({ text, url = SHARE_URL, compact = false, color = "#37414f" })
     cursor: "pointer", lineHeight: 1.6, fontFamily: "inherit",
   };
   return (
-    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
-      {targets.map(([label, href]) => (
-        <a key={label} href={href} target="_blank" rel="noopener noreferrer" style={base}>
-          {label}で共有
-        </a>
-      ))}
-      <button onClick={copy} style={base}>
-        {copied ? "コピーしました" : "リンクをコピー"}
-      </button>
+    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
+        {note && <span style={{ fontSize: 10.5, color: "#9aa0a8", flexShrink: 0 }}>タイトルのみ</span>}
+        {targets.map(([label, href]) => (
+          <a key={label} href={href} target="_blank" rel="noopener noreferrer" style={base}>
+            {label}で共有
+          </a>
+        ))}
+        <button onClick={() => copyTo(`${text} ${url}`, setCopied)} style={base}>
+          {copied ? "コピーしました" : "リンクをコピー"}
+        </button>
+      </div>
+      {note && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
+          <span style={{ fontSize: 10.5, color: "#9aa0a8", flexShrink: 0 }}>解説つき</span>
+          <a
+            href={`https://x.com/intent/post?text=${encodeURIComponent(noteText)}&url=${u}`}
+            target="_blank" rel="noopener noreferrer" style={base}
+          >
+            Xに投稿
+          </a>
+          <a
+            href={`https://bsky.app/intent/compose?text=${encodeURIComponent(`${noteText}\n${url}`)}`}
+            target="_blank" rel="noopener noreferrer" style={base}
+          >
+            Blueskyに投稿
+          </a>
+          <button onClick={() => copyTo(`${fullText}\n${url}`, setCopiedAll)} style={base}>
+            {copiedAll ? "コピーしました" : "解説を全文コピー"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -803,6 +846,7 @@ export default function App() {
                             compact
                             color={CAT[ev.cat].color}
                             text={shareText}
+                            note={ev.n}
                             url={`${SHARE_URL}?e=${encodeURIComponent(id)}`}
                           />
                         </div>
