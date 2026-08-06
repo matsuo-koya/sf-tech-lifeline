@@ -50,7 +50,7 @@ npm run build
 ```
 
 - `s`は`App.jsx`の`SUBS`のキー(`pc` / `ai` / `net` / `sns` / `mobile` / `game` / `inst` / `audio` / `video` / `wear` / `tablet` / `xr` / `robot` / `space` / `quantum` / `boom` / `other` / `artist_w` / `artist_j`)。SF作品には不要です。
-- `l`の記事名に`en:`を付けると英語版Wikipediaにリンクします。`"https://例|表示名"`の形式で外部リンクも張れます。
+- `l`の記事名に`en:`を付けると英語版Wikipediaにリンクします。`"https://例|表示名"`の形式で外部リンクも張れます。記事名と表示名を変えたいときは`"記事名|表示名"`と書けます。
 - `a`に追加日(`"2026-08-06"`)を入れると、その日付が最新の項目群が「最近の追加」として先頭に表示されます。
 
 ## License

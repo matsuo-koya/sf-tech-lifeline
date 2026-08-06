@@ -928,15 +928,18 @@ export default function App() {
                           <div style={{ marginTop: 8, display: "flex", flexWrap: "wrap", gap: 6 }}>
                             {ev.l.map((t) => {
                               // "https://…|表示名" は外部リンク、それ以外はWikipedia記事名(en:で英語版)
-                              const ext = t.startsWith("http");
-                              const en = t.startsWith("en:");
-                              const title = ext ? t.split("|")[1] || t : en ? t.slice(3) : t;
+                              // 記事名と表示名が違う場合は "記事名|表示名" と書ける
+                              const [rawTarget, rawLabel] = t.split("|");
+                              const ext = rawTarget.startsWith("http");
+                              const en = rawTarget.startsWith("en:");
+                              const article = en ? rawTarget.slice(3) : rawTarget;
+                              const title = rawLabel || (ext ? rawTarget : article);
                               const url = ext
-                                ? t.split("|")[0]
+                                ? rawTarget
                                 : (en
                                     ? "https://en.wikipedia.org/wiki/"
                                     : "https://ja.wikipedia.org/wiki/") +
-                                  encodeURIComponent(title.replace(/ /g, "_"));
+                                  encodeURIComponent(article.replace(/ /g, "_"));
                               return (
                                 <a
                                   key={t}
