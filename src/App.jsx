@@ -173,6 +173,12 @@ function makeGradeLabel(ronin, ryunen, path, adultSage) {
   };
 }
 
+// ---- 年表の規模(見出しに表示する) ----
+const STATS = EVENTS.reduce(
+  (a, e) => ({ count: a.count + 1, chars: a.chars + [...(e.n || "")].length }),
+  { count: 0, chars: 0 }
+);
+
 // ---- 共有 ----
 // ローカル開発時は公開URLを共有する(localhostのリンクを配ってしまわないように)
 const SHARE_URL = (() => {
@@ -391,7 +397,7 @@ export default function App() {
       if (last && last.stage.key === st.key) last.items.push(ev);
       else groups.push({ stage: st, items: [ev] });
     }
-    return { groups, gradeLabel };
+    return { groups, gradeLabel, shown: list.filter((e) => e.cat !== "me").length };
   }, [birth, month, ronin, ryunen, path, adultY, myEvents, showSF, showTech, showMusic, showMe, subOff]);
 
   const font =
@@ -409,6 +415,10 @@ export default function App() {
           <h1 style={{ fontSize: 24, fontWeight: 800, margin: 0, lineHeight: 1.35 }}>
             あのSFに、何年生で出会ったか
           </h1>
+          <div style={{ fontSize: 11.5, color: "#8a8f98", marginTop: 8, fontFamily: mono }}>
+            全{STATS.count}項目・解説{STATS.chars.toLocaleString()}字
+            {grouped.shown !== STATS.count && `(表示中 ${grouped.shown}項目)`}
+          </div>
           <div style={{ marginTop: 10 }}>
             <ShareBar
               text={`あのSFに、何年生で出会ったか——SF・コンピューター技術ライフライン(${EVENTS.length}項目) ${HASHTAG}`}
