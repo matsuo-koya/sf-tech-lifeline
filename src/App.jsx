@@ -173,6 +173,20 @@ function makeGradeLabel(ronin, ryunen, path, adultSage) {
   };
 }
 
+// ---- 最近の追加(aフィールドの日付が新しいものを拾う) ----
+const RECENT = (() => {
+  const dated = EVENTS.filter((e) => e.a);
+  if (!dated.length) return null;
+  const latest = dated.reduce((m, e) => (e.a > m ? e.a : m), "");
+  const items = dated.filter((e) => e.a === latest).sort((x, y) => x.y - y.y);
+  // 年代が偏らないよう、範囲全体から等間隔に抜き出して見出しに出す
+  const N = Math.min(6, items.length);
+  const picks = Array.from({ length: N }, (_, i) =>
+    items[Math.round((i * (items.length - 1)) / Math.max(1, N - 1))]
+  );
+  return { date: latest, items, picks };
+})();
+
 // ---- 年表の規模(見出しに表示する) ----
 const STATS = EVENTS.reduce(
   (a, e) => ({ count: a.count + 1, chars: a.chars + [...(e.n || "")].length }),
@@ -331,13 +345,24 @@ export default function App() {
   const [showMe, setShowMe] = useState(SAVED.showMe ?? true);
   // 分野フィルタ。falseが入っている分野だけを非表示にする(未知の分野は既定でオン)
   const [subOff, setSubOff] = useState(SAVED.subOff ?? {});
+  // 畳んでいる期間(帯)のキー
+  const [closedStages, setClosedStages] = useState(() => new Set(SAVED.closed ?? []));
+  // 生年や進路の入力欄。一度入れたら畳んでおける(初回訪問時だけ開いた状態)
+  const [setupOpen, setSetupOpen] = useState(SAVED.setupOpen ?? !SAVED.birth);
   const [open, setOpen] = useState(() => new Set());
   const [newY, setNewY] = useState("");
   const [newT, setNewT] = useState("");
 
   useEffect(() => {
-    store.save({ birth, month, ronin, ryunen, path, adultY, my: myEvents, showSF, showTech, showMusic, showMe, subOff });
-  }, [birth, month, ronin, ryunen, path, adultY, myEvents, showSF, showTech, showMusic, showMe, subOff]);
+    store.save({ birth, month, ronin, ryunen, path, adultY, my: myEvents, showSF, showTech, showMusic, showMe, subOff, closed: [...closedStages], setupOpen });
+  }, [birth, month, ronin, ryunen, path, adultY, myEvents, showSF, showTech, showMusic, showMe, subOff, closedStages, setupOpen]);
+
+  const toggleStage = (key) =>
+    setClosedStages((prev) => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      return next;
+    });
 
   const subOn = (k) => subOff[k] !== true;
   const toggleSub = (k) => setSubOff((prev) => ({ ...prev, [k]: !prev[k] }));
@@ -366,6 +391,7 @@ export default function App() {
     if (!ev) return;
     const id = eid(ev);
     setOpen((prev) => new Set(prev).add(id));
+    setClosedStages(new Set()); // 共有リンクで来たときは帯を畳んだままにしない
     const timer = setTimeout(() => {
       document.getElementById(`ev-${id}`)?.scrollIntoView({ block: "center" });
     }, 150);
@@ -419,6 +445,32 @@ export default function App() {
             全{STATS.count}項目・解説{STATS.chars.toLocaleString()}字
             {grouped.shown !== STATS.count && `(表示中 ${grouped.shown}項目)`}
           </div>
+          {RECENT && (
+            <div
+              style={{
+                marginTop: 8, fontSize: 11.5, lineHeight: 1.7, color: "#6b7280",
+                background: "#fdf3e0", border: "1px solid #efe0c0",
+                borderRadius: 8, padding: "7px 12px",
+              }}
+            >
+              <span style={{ fontWeight: 700, color: "#8a5a12" }}>
+                最近の追加({RECENT.date}・{RECENT.items.length}項目)
+              </span>{" "}
+              {RECENT.picks.map((e, i) => (
+                <span key={eid(e)}>
+                  {i > 0 && " / "}
+                  <a
+                    href={`?e=${eid(e)}`}
+                    style={{ color: "#6b7280", textDecoration: "none", borderBottom: "1px dotted #b0771e" }}
+                  >
+                    {e.y} {e.t.replace(/[((].*$/, "")}
+                  </a>
+                </span>
+              ))}
+              {RECENT.items.length > RECENT.picks.length &&
+                ` ほか${RECENT.items.length - RECENT.picks.length}件`}
+            </div>
+          )}
           <div style={{ marginTop: 10 }}>
             <ShareBar
               text={`あのSFに、何年生で出会ったか——SF・コンピューター技術ライフライン(${EVENTS.length}項目) ${HASHTAG}`}
@@ -426,6 +478,30 @@ export default function App() {
           </div>
         </header>
 
+        {/* 入力欄(畳めるようにしている) */}
+        <button
+          onClick={() => setSetupOpen((v) => !v)}
+          aria-expanded={setupOpen}
+          style={{
+            display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", width: "100%",
+            background: "#fff", border: "1px solid #e2e4e8", borderRadius: 12,
+            padding: "10px 16px", marginBottom: setupOpen ? 14 : 14,
+            cursor: "pointer", textAlign: "left", fontFamily: font, color: "#22272e",
+          }}
+        >
+          <span style={{ fontSize: 13, fontWeight: 700 }}>あなたの設定</span>
+          <span style={{ fontFamily: mono, fontSize: 12, color: "#6b7280" }}>
+            {birth}年{month ? `${month}月` : ""}生まれ・{PATHS[path].label}
+            {ronin ? `・浪人${ronin}年` : ""}
+            {ryunen ? `・留年${ryunen}年` : ""}
+            {adultY ? `・社会人${adultY}年〜` : ""}
+            {myEvents.length ? `・自分の出来事${myEvents.length}件` : ""}
+          </span>
+          <span style={{ flex: 1 }} />
+          <span style={{ fontSize: 11, color: "#8a8f98" }}>{setupOpen ? "畳む ▼" : "変更する ▶"}</span>
+        </button>
+
+        {setupOpen && (<>
         {/* 生年入力 */}
         <div
           style={{
@@ -580,6 +656,8 @@ export default function App() {
           </div>
         </div>
 
+        </>)}
+
         {/* 興味のある分野 */}
         <div
           style={{
@@ -645,6 +723,20 @@ export default function App() {
           ))}
           <span style={{ flex: 1 }} />
           <button
+            onClick={() =>
+              setClosedStages((prev) =>
+                prev.size ? new Set() : new Set(grouped.groups.map((g) => g.stage.key))
+              )
+            }
+            style={{
+              fontFamily: font, fontSize: 12, fontWeight: 700, cursor: "pointer",
+              padding: "6px 14px", borderRadius: 999,
+              border: "1.5px solid #7a6a55", background: "transparent", color: "#7a6a55",
+            }}
+          >
+            {closedStages.size ? "期間を開く" : "期間を畳む"}
+          </button>
+          <button
             onClick={() => setOpen(new Set(EVENTS.map(eid)))}
             style={{
               fontFamily: font, fontSize: 12, fontWeight: 700, cursor: "pointer",
@@ -652,7 +744,7 @@ export default function App() {
               border: "1.5px solid #37414f", background: "transparent", color: "#37414f",
             }}
           >
-            すべて開く
+            解説を開く
           </button>
           <button
             onClick={() => setOpen(new Set())}
@@ -662,19 +754,25 @@ export default function App() {
               border: "1.5px solid #b0b4bb", background: "transparent", color: "#8a8f98",
             }}
           >
-            すべてたたむ
+            解説を畳む
           </button>
         </div>
 
         {/* 学齢期グループ */}
-        {grouped.groups.map((g, gi) => (
+        {grouped.groups.map((g, gi) => {
+        const stageClosed = closedStages.has(g.stage.key);
+        return (
           <section key={gi} style={{ marginBottom: 22 }}>
-            <div
+            <button
+              onClick={() => toggleStage(g.stage.key)}
+              aria-expanded={!stageClosed}
               style={{
-                display: "flex", alignItems: "baseline", gap: 10,
-                borderLeft: `6px solid ${g.stage.color}`,
+                display: "flex", alignItems: "baseline", gap: 10, width: "100%",
+                borderLeft: `6px solid ${g.stage.color}`, border: "none",
+                borderLeftWidth: 6, borderLeftStyle: "solid", borderLeftColor: g.stage.color,
                 background: g.stage.bg, borderRadius: 8,
                 padding: "8px 14px", marginBottom: 8,
+                cursor: "pointer", textAlign: "left", fontFamily: font,
               }}
             >
               <h2 style={{ fontSize: 16, fontWeight: 800, margin: 0, color: g.stage.color }}>
@@ -683,7 +781,15 @@ export default function App() {
               <span style={{ fontFamily: mono, fontSize: 12, color: "#6b7280" }}>
                 {g.items[0].y}–{g.items[g.items.length - 1].y}
               </span>
-            </div>
+              <span style={{ flex: 1 }} />
+              <span style={{ fontFamily: mono, fontSize: 11.5, color: "#8a8f98" }}>
+                {g.items.length}件
+              </span>
+              <span style={{ fontSize: 11, color: g.stage.color }} aria-hidden="true">
+                {stageClosed ? "▶" : "▼"}
+              </span>
+            </button>
+            {!stageClosed && (
             <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
               {g.items.map((ev, i) => {
                 if (ev.cat === "me") {
@@ -866,8 +972,10 @@ export default function App() {
                 );
               })}
             </ul>
+            )}
           </section>
-        ))}
+        );
+        })}
 
         <div
           style={{
@@ -917,7 +1025,7 @@ export default function App() {
 
         <footer style={{ fontSize: 11, color: "#8a8f98", marginTop: 28, lineHeight: 1.8 }}>
           学齢は誕生年(月は任意入力)からの学年計算。月を入れると1〜3月の早生まれが1つ上の学年として扱われます(未設定時は4〜12月生まれ相当の概算。日単位の区切りは考慮せず)。各年の出来事は、その年の4月に始まる学年に割り当てています。進路・浪人・留年を設定すると、それ以降の帯がその分だけ変わります。高専は中学卒業後の5年間を一続きの帯として扱います。「社会人になった年度」を入れた場合は進路の計算より優先され、その年度から社会人、卒業から就職までに間があればその期間を「社会人になる前」として表示します。「自分の出来事」はこの端末のブラウザ内にのみ保存され、どこにも送信されません。
-          アイコン色:赤=SF作品、青=実テクノロジー、紫=音楽・カルチャー。実テクノロジーと音楽は「興味のある分野」でさらに絞り込めます(各行の右端が分野名)。アイコンは全てオリジナルのラインアイコン。各行をタップすると、現代技術とのつながりを解説する蘊蓄コラムが開きます。コラム末尾の「W:」はWikipediaの関連項目、「▶」は外部の解説記事(CPU関連は大原雄介氏のASCII.jp連載)へのリンク、「Amazonで探す/YouTubeで探す」は作品の検索結果へのリンクです(在庫・配信状況は検索先でご確認ください)。
+          アイコン色:赤=SF作品、青=実テクノロジー、紫=音楽・カルチャー。実テクノロジーと音楽は「興味のある分野」でさらに絞り込めます(各行の右端が分野名)。アイコンは全てオリジナルのラインアイコン。各行をタップすると、現代技術とのつながりを解説する蘊蓄コラムが開きます。各行をタップすると解説が開きます(見出しの帯をタップすると、その期間ごと畳めます)。コラム末尾の「W:」はWikipediaの関連項目、「▶」は外部の解説記事(CPU関連は大原雄介氏のASCII.jp連載)へのリンク、「Amazonで探す/YouTubeで探す」は作品の検索結果へのリンクです(在庫・配信状況は検索先でご確認ください)。
           作品年は原則として発表・放映開始年(日本導入年が別にある場合は両方掲載)。
           <div style={{ marginTop: 10 }}>
             このアプリは、テクノエッジの連載{" "}
