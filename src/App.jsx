@@ -200,6 +200,13 @@ const RECENT = (() => {
   return { date: latest, items, picks };
 })();
 
+// ---- 最近の新機能(手で追記する) ----
+const FEATURES = [
+  { d: "2026-08-08", t: "「社会人」と「生まれる前」の帯を、技術史の時代(大型計算機/マイコン・パソコン/インターネット/Web 2.0/スマートフォン/AI)でさらに区切って折りたためるようにしました" },
+  { d: "2026-08-06", t: "期間ごと・入力欄の折りたたみ、解説つきのSNS投稿、項目数と文字数の表示を追加しました" },
+  { d: "2026-08-05", t: "20分野の絞り込みフィルタと、項目ごとの共有リンクを追加しました" },
+];
+
 // ---- 年表の規模(見出しに表示する) ----
 const STATS = EVENTS.reduce(
   (a, e) => ({ count: a.count + 1, chars: a.chars + [...(e.n || "")].length }),
@@ -484,6 +491,23 @@ export default function App() {
               ))}
               {RECENT.items.length > RECENT.picks.length &&
                 ` ほか${RECENT.items.length - RECENT.picks.length}件`}
+            </div>
+          )}
+          {FEATURES.length > 0 && (
+            <div
+              style={{
+                marginTop: 6, fontSize: 11.5, lineHeight: 1.7, color: "#6b7280",
+                background: "#eef1f5", border: "1px solid #dde2e8",
+                borderRadius: 8, padding: "7px 12px",
+              }}
+            >
+              <span style={{ fontWeight: 700, color: "#37414f" }}>最近の新機能</span>{" "}
+              {FEATURES.slice(0, 2).map((f, i) => (
+                <span key={f.d}>
+                  {i > 0 && " / "}
+                  <span style={{ fontFamily: mono, fontSize: 10.5 }}>{f.d}</span> {f.t}
+                </span>
+              ))}
             </div>
           )}
           <div style={{ marginTop: 10 }}>
