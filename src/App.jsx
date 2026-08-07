@@ -202,7 +202,7 @@ const RECENT = (() => {
 
 // ---- 最近の新機能(手で追記する) ----
 const FEATURES = [
-  { d: "2026-08-08", t: "「社会人」と「生まれる前」の帯を、技術史の時代(大型計算機/マイコン・パソコン/インターネット/Web 2.0/スマートフォン/AI)でさらに区切って折りたためるようにしました" },
+  { d: "2026-08-08", t: "すべての帯に技術史の時代(大型計算機/マイコン・パソコン/インターネット/Web 2.0/スマートフォン/AI)を併記し、「社会人」と「生まれる前」は時代ごとに折りたためるようにしました" },
   { d: "2026-08-06", t: "期間ごと・入力欄の折りたたみ、解説つきのSNS投稿、項目数と文字数の表示を追加しました" },
   { d: "2026-08-05", t: "20分野の絞り込みフィルタと、項目ごとの共有リンクを追加しました" },
 ];
@@ -444,6 +444,12 @@ export default function App() {
       const last = groups[groups.length - 1];
       if (last && last.key === key) last.items.push(ev);
       else groups.push({ key, stage: st, era, items: [ev] });
+    }
+    // 学齢期の帯は分割しないが、またいでいる時代の名前は見出しに併記する
+    for (const g of groups) {
+      if (g.era) continue;
+      const names = [...new Set(g.items.map((e) => eraOf(e.y).label))];
+      g.eraSpan = names.join(" → ");
     }
     return { groups, gradeLabel, shown: list.filter((e) => e.cat !== "me").length };
   }, [birth, month, ronin, ryunen, path, adultY, myEvents, showSF, showTech, showMusic, showMe, subOff]);
@@ -816,9 +822,9 @@ export default function App() {
             >
               <h2 style={{ fontSize: 16, fontWeight: 800, margin: 0, color: g.stage.color }}>
                 {g.stage.label}
-                {g.era && (
+                {(g.era || g.eraSpan) && (
                   <span style={{ fontSize: 13, fontWeight: 700, opacity: 0.75 }}>
-                    {" / "}{g.era.label}
+                    {" / "}{g.era ? g.era.label : g.eraSpan}
                   </span>
                 )}
               </h2>
