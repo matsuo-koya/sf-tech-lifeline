@@ -85,6 +85,19 @@ const PATHS = {
 
 const ADULT_STAGE = { key: "adult", label: "社会人", color: "#37414f", bg: "#eef1f5" };
 
+// ---- 社会人と生まれる前は長くなりすぎるので、技術史の時代でさらに区切る ----
+const ERAS = [
+  { key: "invention", label: "発明の時代", to: 1945 },
+  { key: "mainframe", label: "大型計算機の時代", to: 1974 },
+  { key: "micro", label: "マイコン・パソコンの時代", to: 1992 },
+  { key: "internet", label: "インターネットの時代", to: 2000 },
+  { key: "web2", label: "Web 2.0の時代", to: 2006 },
+  { key: "mobile", label: "スマートフォンの時代", to: 2019 },
+  { key: "covid", label: "コロナ以降", to: Infinity },
+];
+const eraOf = (y) => ERAS.find((e) => y <= e.to);
+const SPLIT_STAGES = new Set(["pre", "adult"]);
+
 // 「社会人になった年度」が指定されたら、そこで学齢の帯を打ち切って社会人に切り替える
 function applyAdultSage(stages, adultSage) {
   if (adultSage == null) return stages;
@@ -419,9 +432,11 @@ export default function App() {
     const groups = [];
     for (const ev of list) {
       const st = stageOf(ev.age, ev.sage);
+      const era = SPLIT_STAGES.has(st.key) ? eraOf(ev.y) : null;
+      const key = era ? `${st.key}:${era.key}` : st.key;
       const last = groups[groups.length - 1];
-      if (last && last.stage.key === st.key) last.items.push(ev);
-      else groups.push({ stage: st, items: [ev] });
+      if (last && last.key === key) last.items.push(ev);
+      else groups.push({ key, stage: st, era, items: [ev] });
     }
     return { groups, gradeLabel, shown: list.filter((e) => e.cat !== "me").length };
   }, [birth, month, ronin, ryunen, path, adultY, myEvents, showSF, showTech, showMusic, showMe, subOff]);
@@ -725,7 +740,7 @@ export default function App() {
           <button
             onClick={() =>
               setClosedStages((prev) =>
-                prev.size ? new Set() : new Set(grouped.groups.map((g) => g.stage.key))
+                prev.size ? new Set() : new Set(grouped.groups.map((g) => g.key))
               )
             }
             style={{
@@ -760,11 +775,11 @@ export default function App() {
 
         {/* 学齢期グループ */}
         {grouped.groups.map((g, gi) => {
-        const stageClosed = closedStages.has(g.stage.key);
+        const stageClosed = closedStages.has(g.key);
         return (
           <section key={gi} style={{ marginBottom: 22 }}>
             <button
-              onClick={() => toggleStage(g.stage.key)}
+              onClick={() => toggleStage(g.key)}
               aria-expanded={!stageClosed}
               style={{
                 display: "flex", alignItems: "baseline", gap: 10, width: "100%",
@@ -777,6 +792,11 @@ export default function App() {
             >
               <h2 style={{ fontSize: 16, fontWeight: 800, margin: 0, color: g.stage.color }}>
                 {g.stage.label}
+                {g.era && (
+                  <span style={{ fontSize: 13, fontWeight: 700, opacity: 0.75 }}>
+                    {" / "}{g.era.label}
+                  </span>
+                )}
               </h2>
               <span style={{ fontFamily: mono, fontSize: 12, color: "#6b7280" }}>
                 {g.items[0].y}–{g.items[g.items.length - 1].y}
