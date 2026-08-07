@@ -93,7 +93,7 @@ const ERAS = [
   { key: "internet", label: "インターネットの時代", to: 2000 },
   { key: "web2", label: "Web 2.0の時代", to: 2006 },
   { key: "mobile", label: "スマートフォンの時代", to: 2019 },
-  { key: "covid", label: "コロナ以降", to: Infinity },
+  { key: "ai", label: "AIの時代", to: Infinity },
 ];
 const eraOf = (y) => ERAS.find((e) => y <= e.to);
 const SPLIT_STAGES = new Set(["pre", "adult"]);
