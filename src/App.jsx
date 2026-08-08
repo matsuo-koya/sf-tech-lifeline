@@ -390,10 +390,14 @@ const ROMAN_RE = new RegExp(
   `(^|[^A-Za-z/_])(${Object.keys(ROMAN).sort((a, b) => b.length - a.length).join("|")})(?![A-Za-z])`,
   "g"
 );
+// 単独の略語も読みを当てる(AIは「アイ」と読まれてしまうため)。OpenAIのように語の一部なら触らない
+const ABBR = { AI: "エーアイ" };
+const ABBR_RE = new RegExp(`(^|[^A-Za-z])(${Object.keys(ABBR).join("|")})(?![A-Za-z])`, "g");
 const applyReadings = (s) =>
   Object.entries(READINGS)
     .reduce((t, [k, v]) => t.split(k).join(v), s)
-    .replace(ROMAN_RE, (_, pre, r) => pre + ROMAN[r]);
+    .replace(ROMAN_RE, (_, pre, r) => pre + ROMAN[r])
+    .replace(ABBR_RE, (_, pre, a) => pre + ABBR[a]);
 const speakText = (ev) =>
   applyReadings(deDash(`${ev.y}年。${ev.t.replace(/[((][^))]*[))]/g, "")}。${ev.n || ""}`));
 
