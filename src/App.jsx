@@ -401,6 +401,7 @@ const READINGS = {
   脱け: "ヌケ",
   富田倫生: "トミタミチオ",
   "Raspberry Pi": "ラズベリーパイ",
+  "DOS/V": "ドスブイ",
 };
 // 単独のローマ数字(MUSIC I、Apple II、ドラゴンクエストIV など)は「アイ」ではなく数として読ませる。
 // UNIXやASCIIの中のIやXを拾わないよう、前後に英字がない場合だけ置き換える(DOS/Vなどの「/」直後も除外。
@@ -415,8 +416,11 @@ const ROMAN_RE = new RegExp(
   "g"
 );
 // 単独の略語も読みを当てる(AIは「アイ」と読まれてしまうため)。OpenAIのように語の一部なら触らない
-const ABBR = { AI: "エーアイ" };
-const ABBR_RE = new RegExp(`(^|[^A-Za-z])(${Object.keys(ABBR).join("|")})(?![A-Za-z])`, "g");
+const ABBR = { AI: "エーアイ", X1: "エックスワン" };
+const ABBR_RE = new RegExp(
+  `(^|[^A-Za-z0-9])(${Object.keys(ABBR).join("|")})(?![A-Za-z0-9])`,
+  "g"
+);
 const applyReadings = (s) =>
   Object.entries(READINGS)
     .reduce((t, [k, v]) => t.split(k).join(v), s)
