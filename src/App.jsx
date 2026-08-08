@@ -451,6 +451,8 @@ const READINGS = {
   この年: "コノトシ",
   Splendor: "スプレンダー",
   splendor: "スプレンダー",
+  Museum: "ミュージアム",
+  museum: "ミュージアム",
   Duplex: "デュープレックス",
   Google: "グーグル",
   google: "グーグル",
