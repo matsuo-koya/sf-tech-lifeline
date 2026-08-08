@@ -464,9 +464,9 @@ const ROMAN_RE = new RegExp(
   "g"
 );
 // 単独の略語も読みを当てる(AIは「アイ」と読まれてしまうため)。OpenAIのように語の一部なら触らない
-const ABBR = { AI: "エーアイ", X1: "エックスワン", goo: "グー" };
+const ABBR = { AI: "エーアイ", AGI: "エージーアイ", X1: "エックスワン", goo: "グー" };
 const ABBR_RE = new RegExp(
-  `(^|[^A-Za-z0-9])(${Object.keys(ABBR).join("|")})(?![A-Za-z0-9])`,
+  `(^|[^A-Za-z0-9])(${Object.keys(ABBR).sort((a, b) => b.length - a.length).join("|")})(?![A-Za-z0-9])`,
   "g"
 );
 const applyReadings = (s) =>
