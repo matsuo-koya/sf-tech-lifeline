@@ -449,6 +449,8 @@ const READINGS = {
   弾けなくても: "ヒケナクテモ",
   DAW: "ディーエーダブリュー",
   この年: "コノトシ",
+  Splendor: "スプレンダー",
+  splendor: "スプレンダー",
   Duplex: "デュープレックス",
   Google: "グーグル",
   google: "グーグル",
