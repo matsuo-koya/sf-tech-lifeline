@@ -44,6 +44,7 @@ export const THREADS = [
       { y: 1989, m: "Macintosh Portable" },
       { y: 1993, m: "Newton" },
       { y: 1995, m: "Microsoft Bob" },
+      { y: 2008, m: "808s & Heartbreak" },
     ],
   },
   {

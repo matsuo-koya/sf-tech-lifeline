@@ -370,8 +370,12 @@ const deDash = (s) =>
   s
     .replace(new RegExp(`([A-Za-z0-9])${DASH.source}([A-Za-z0-9])`, "g"), "$1$2")
     .replace(new RegExp(DASH.source, "g"), " ");
+// 音声合成が読み違える語は、読みを当てておく(気づいたものを足していく)
+const READINGS = { Copilot: "コパイロット" };
+const applyReadings = (s) =>
+  Object.entries(READINGS).reduce((t, [k, v]) => t.split(k).join(v), s);
 const speakText = (ev) =>
-  deDash(`${ev.y}年。${ev.t.replace(/[((][^))]*[))]/g, "")}。${ev.n || ""}`);
+  applyReadings(deDash(`${ev.y}年。${ev.t.replace(/[((][^))]*[))]/g, "")}。${ev.n || ""}`));
 
 // 背景に流す同時代の項目の色(暗い画面で読めるよう、カテゴリー色を明るくしたもの)
 const BG_COLOR = { sf: "#e08b78", tech: "#7fa8dd", music: "#b58cd6" };
