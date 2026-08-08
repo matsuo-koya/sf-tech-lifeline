@@ -411,6 +411,7 @@ const READINGS = {
   "The Elder Scrolls": "ジ・エルダー・スクロールズ",
   NVIDIA: "エヌビディア",
   eスポーツ: "イースポーツ",
+  eコマース: "イーコマース",
   伺か: "ウカガカ",
   "US Robotics": "ユーエス・ロボティクス",
 };
