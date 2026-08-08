@@ -203,7 +203,7 @@ const RECENT = (() => {
 
 // ---- 最近の新機能(手で追記する) ----
 const FEATURES = [
-  { d: "2026-08-08", t: "「テーマの糸」を追加しました。歌声合成やCG、写真の系譜など13本のテーマを選ぶと、関連項目が年代順に自動再生されます(読み上げ・速度切り替えつき)" },
+  { d: "2026-08-08", t: "「テーマの糸」を追加しました。歌声合成やCG、写真の系譜など13本のテーマを選ぶと、関連項目が年代順に自動再生されます(読み上げ・速度切り替えつき。左右の背景には同じころの別ジャンルの出来事が薄く流れます)" },
   { d: "2026-08-08", t: "すべての帯に技術史の時代(大型計算機/PC/インターネット/Web 2.0/スマートフォン/AI)を併記し、「社会人」と「生まれる前」は時代ごとに折りたためるようにしました" },
   { d: "2026-08-06", t: "期間ごと・入力欄の折りたたみ、解説つきのSNS投稿、項目数と文字数の表示を追加しました" },
   { d: "2026-08-05", t: "20分野の絞り込みフィルタと、項目ごとの共有リンクを追加しました" },
@@ -362,9 +362,20 @@ const jpVoice = () => {
   }
 };
 
-// 読み上げ用のテキスト。括弧の中の補足は読み飛ばす
+// 読み上げ用のテキスト。括弧の中の補足は読み飛ばす。
+// 型番のハイフン(PC-8801など)は音声合成が「の」と読んでしまうので、前後が英数字なら詰めて、
+// それ以外のダッシュ類は空白にして読ませない(長音符「ー」は残す)
+const DASH = /[-‐‑‒–—―]/;
+const deDash = (s) =>
+  s
+    .replace(new RegExp(`([A-Za-z0-9])${DASH.source}([A-Za-z0-9])`, "g"), "$1$2")
+    .replace(new RegExp(DASH.source, "g"), " ");
 const speakText = (ev) =>
-  `${ev.y}年。${ev.t.replace(/[((][^))]*[))]/g, "")}。${ev.n || ""}`;
+  deDash(`${ev.y}年。${ev.t.replace(/[((][^))]*[))]/g, "")}。${ev.n || ""}`);
+
+// 背景に流す同時代の項目の色(暗い画面で読めるよう、カテゴリー色を明るくしたもの)
+const BG_COLOR = { sf: "#e08b78", tech: "#7fa8dd", music: "#b58cd6" };
+const BG_ROWS = 7;
 
 function Theater({ thread, gradeLabel, birth, cohortBirth, tts, setTts, onClose }) {
   const evs = thread.events;
@@ -450,6 +461,20 @@ function Theater({ thread, gradeLabel, birth, cohortBirth, tts, setTts, onClose 
   const gradeOf = (ev) =>
     ev.y < birth ? "生まれる前" : gradeLabel(ev.y - birth, ev.y - cohortBirth);
 
+  // 背景の左右に流す、同じころの別カテゴリーの項目(その糸に入っているものは除く)。
+  // 何が同時に起きていた時代なのかを、読まなくても感じられるようにするための層
+  const bgRows = useMemo(() => {
+    const inThread = new Set(evs.map(eid));
+    const year = evs[idx].y;
+    let near = [];
+    for (let win = 3; win <= 40 && near.length < 21; win += 3) {
+      near = EVENTS.filter((e) => Math.abs(e.y - year) <= win && !inThread.has(eid(e)));
+    }
+    const rows = Array.from({ length: BG_ROWS }, () => []);
+    near.forEach((e, i) => rows[i % BG_ROWS].push(e));
+    return rows.filter((r) => r.length);
+  }, [evs, idx]);
+
   const ctlBtn = (on = false) => ({
     fontSize: 12, fontWeight: 700, cursor: "pointer", padding: "6px 12px",
     borderRadius: 999, fontFamily: font, lineHeight: 1.2,
@@ -492,7 +517,48 @@ function Theater({ thread, gradeLabel, birth, cohortBirth, tts, setTts, onClose 
       </div>
 
       {/* 本体(現在の項目が中央に来るよう自動でスクロールする) */}
-      <div ref={listRef} style={{ flex: 1, overflowY: "auto", padding: "40vh 16px" }}>
+      <div style={{ flex: 1, position: "relative", overflow: "hidden" }}>
+        <style>{`
+          @keyframes lifelineDriftA { from { transform: translateX(0) } to { transform: translateX(-50%) } }
+          @keyframes lifelineDriftB { from { transform: translateX(-50%) } to { transform: translateX(0) } }
+        `}</style>
+        {/* 同じころに起きていた別カテゴリーの出来事を、左右の背景に薄く流す */}
+        <div style={{ position: "absolute", inset: 0, overflow: "hidden" }} aria-hidden="true">
+          {bgRows.map((row, i) => (
+            <div
+              key={i}
+              style={{
+                position: "absolute", top: `${((i + 0.5) * 100) / bgRows.length}%`,
+                left: 0, width: "max-content", display: "flex", gap: 46,
+                whiteSpace: "nowrap", lineHeight: 1,
+                animation: `lifelineDrift${i % 2 ? "B" : "A"} ${110 + i * 23}s linear infinite`,
+              }}
+            >
+              {[...row, ...row].map((e, j) => (
+                <span
+                  key={j}
+                  style={{
+                    fontSize: 13 + ((i * 5) % 9), color: BG_COLOR[e.cat] || "#8a93a3",
+                    opacity: 0.34, fontWeight: 600,
+                  }}
+                >
+                  <span style={{ fontFamily: mono, marginRight: 8, opacity: 0.65 }}>{e.y}</span>
+                  {e.t.replace(/[((].*$/, "")}
+                </span>
+              ))}
+            </div>
+          ))}
+        </div>
+        {/* 中央は読ませたいので、背景の層を覆い隠す */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute", inset: 0, pointerEvents: "none",
+            background:
+              "linear-gradient(90deg, rgba(18,21,27,0) 0%, rgba(18,21,27,0.97) 20%, rgba(18,21,27,0.97) 80%, rgba(18,21,27,0) 100%)",
+          }}
+        />
+        <div ref={listRef} style={{ position: "absolute", inset: 0, overflowY: "auto", padding: "40vh 16px" }}>
         <div style={{ maxWidth: 640, margin: "0 auto" }}>
           {evs.map((ev, i) => {
             const active = i === idx;
@@ -556,6 +622,7 @@ function Theater({ thread, gradeLabel, birth, cohortBirth, tts, setTts, onClose 
               </button>
             </div>
           )}
+        </div>
         </div>
       </div>
 
@@ -1385,7 +1452,7 @@ export default function App() {
           学齢は誕生年(月は任意入力)からの学年計算。月を入れると1〜3月の早生まれが1つ上の学年として扱われます(未設定時は4〜12月生まれ相当の概算。日単位の区切りは考慮せず)。各年の出来事は、その年の4月に始まる学年に割り当てています。進路・浪人・留年を設定すると、それ以降の帯がその分だけ変わります。高専は中学卒業後の5年間を一続きの帯として扱います。「社会人になった年度」を入れた場合は進路の計算より優先され、その年度から社会人、卒業から就職までに間があればその期間を「社会人になる前」として表示します。「自分の出来事」はこの端末のブラウザ内にのみ保存され、どこにも送信されません。
           アイコン色:赤=SF作品、青=実テクノロジー、紫=音楽・カルチャー。実テクノロジーと音楽は「興味のある分野」でさらに絞り込めます(各行の右端が分野名)。アイコンは全てオリジナルのラインアイコン。各行をタップすると、現代技術とのつながりを解説する蘊蓄コラムが開きます。各行をタップすると解説が開きます(見出しの帯をタップすると、その期間ごと畳めます)。コラム末尾の「W:」はWikipediaの関連項目、「▶」は外部の解説記事(CPU関連は大原雄介氏のASCII.jp連載)へのリンク、「Amazonで探す/YouTubeで探す」は作品の検索結果へのリンクです(在庫・配信状況は検索先でご確認ください)。
           作品年は原則として発表・放映開始年(日本導入年が別にある場合は両方掲載)。
-          「テーマの糸」は、年表に散らばった項目をひとつの流れとして順に自動再生する読み物モードです。項目は年代順に送られ、解説はブラウザの音声合成で読み上げられます(読み上げボタンで切り替え。速度も変えられます。スペースキーで一時停止、矢印キーで前後、Escで終了)。読み上げの声は端末に入っている日本語音声を使うため、環境によって聞こえ方が変わります。糸ごとの共有リンク(?t=)も発行されます。
+          「テーマの糸」は、年表に散らばった項目をひとつの流れとして順に自動再生する読み物モードです。項目は年代順に送られ、解説はブラウザの音声合成で読み上げられます(読み上げボタンで切り替え。速度も変えられます。スペースキーで一時停止、矢印キーで前後、Escで終了)。読み上げの声は端末に入っている日本語音声を使うため、環境によって聞こえ方が変わります。糸ごとの共有リンク(?t=)も発行されます。左右の背景に薄く流れているのは、その項目と同じころに起きていた別ジャンルの出来事です。
           <div style={{ marginTop: 10 }}>
             このアプリは、テクノエッジの連載{" "}
             <a
