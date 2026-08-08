@@ -377,6 +377,9 @@ const READINGS = {
   VOCALOID: "ボーカロイド",
   MEIKO: "メイコ",
   KAITO: "カイト",
+  VISOR: "バイザー",
+  Visor: "バイザー",
+  MessagePad: "メッセージパッド",
 };
 // 単独のローマ数字(MUSIC I、Apple II、ドラゴンクエストIV など)は「アイ」ではなく数として読ませる。
 // UNIXやASCIIの中のIやXを拾わないよう、前後に英字がない場合だけ置き換える(DOS/Vなどの「/」直後も除外。
