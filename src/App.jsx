@@ -1,5 +1,6 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { EVENTS } from "./events";
+import { THREADS } from "./threads";
 
 // ---- ラインアイコン(全て自作SVG・権利フリー) ----
 const P = {
@@ -202,6 +203,7 @@ const RECENT = (() => {
 
 // ---- 最近の新機能(手で追記する) ----
 const FEATURES = [
+  { d: "2026-08-08", t: "「テーマの糸」を追加しました。歌声合成やCG、写真の系譜など13本のテーマを選ぶと、関連項目が年代順に自動再生されます(読み上げ・速度切り替えつき)" },
   { d: "2026-08-08", t: "すべての帯に技術史の時代(大型計算機/PC/インターネット/Web 2.0/スマートフォン/AI)を併記し、「社会人」と「生まれる前」は時代ごとに折りたためるようにしました" },
   { d: "2026-08-06", t: "期間ごと・入力欄の折りたたみ、解説つきのSNS投稿、項目数と文字数の表示を追加しました" },
   { d: "2026-08-05", t: "20分野の絞り込みフィルタと、項目ごとの共有リンクを追加しました" },
@@ -340,6 +342,269 @@ const CAT = {
   me: { label: "自分の出来事", color: "#0f8a5f" },
 };
 
+// ---- テーマの糸(年表に散らばった項目を、一本の流れとして自動再生する) ----
+// threads.js の { y, m } を実際の項目に解決しておく
+const THREAD_LIST = THREADS.map((th) => ({
+  ...th,
+  events: th.items
+    .map(({ y, m }) => EVENTS.find((e) => e.y === y && e.t.includes(m)))
+    .filter(Boolean),
+})).filter((th) => th.events.length > 1);
+
+const findThread = (key) => THREAD_LIST.find((t) => t.key === key) || null;
+
+// 読み上げに使う日本語の声(環境になければ既定の声のまま)
+const jpVoice = () => {
+  try {
+    return window.speechSynthesis.getVoices().find((v) => /ja[-_]JP/i.test(v.lang)) || null;
+  } catch {
+    return null;
+  }
+};
+
+// 読み上げ用のテキスト。括弧の中の補足は読み飛ばす
+const speakText = (ev) =>
+  `${ev.y}年。${ev.t.replace(/[((][^))]*[))]/g, "")}。${ev.n || ""}`;
+
+function Theater({ thread, gradeLabel, birth, cohortBirth, tts, setTts, onClose }) {
+  const evs = thread.events;
+  const [idx, setIdx] = useState(0);
+  const [playing, setPlaying] = useState(true);
+  const [speed, setSpeed] = useState(1);
+  const [done, setDone] = useState(false);
+  const listRef = useRef(null);
+
+  const font =
+    '"Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic Medium", "Noto Sans JP", sans-serif';
+  const mono = 'ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+
+  const go = (i) => {
+    setDone(false);
+    setIdx(Math.max(0, Math.min(evs.length - 1, i)));
+  };
+
+  // 自動送り。読み上げが有効なら読み終わりで、無効なら文字数に応じた時間で次へ
+  useEffect(() => {
+    if (!playing || done) return;
+    const next = () => {
+      if (idx + 1 < evs.length) setIdx(idx + 1);
+      else {
+        setDone(true);
+        setPlaying(false);
+      }
+    };
+    const text = speakText(evs[idx]);
+    const synth = typeof window !== "undefined" && window.speechSynthesis;
+    if (tts && synth) {
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "ja-JP";
+      u.rate = speed;
+      const v = jpVoice();
+      if (v) u.voice = v;
+      u.onend = next;
+      u.onerror = next;
+      synth.cancel();
+      synth.speak(u);
+      // 片付けでハンドラを外してから止める(cancelで次に進んでしまわないように)
+      return () => {
+        u.onend = null;
+        u.onerror = null;
+        synth.cancel();
+      };
+    }
+    const ms = Math.min(16000, 1800 + [...text].length * 70) / speed;
+    const timer = setTimeout(next, ms);
+    return () => clearTimeout(timer);
+  }, [idx, playing, done, tts, speed, evs]);
+
+  // 現在の項目を画面の中央へ送る(これが「自動スクロール」の見え方になる)
+  useEffect(() => {
+    listRef.current?.querySelector(`[data-i="${idx}"]`)?.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+  }, [idx]);
+
+  // 開いている間は背後の年表を動かさない
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === "Escape") onClose();
+      else if (e.key === " ") {
+        e.preventDefault();
+        setPlaying((p) => !p);
+      } else if (e.key === "ArrowRight" || e.key === "ArrowDown") go(idx + 1);
+      else if (e.key === "ArrowLeft" || e.key === "ArrowUp") go(idx - 1);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [idx, onClose]);
+
+  const gradeOf = (ev) =>
+    ev.y < birth ? "生まれる前" : gradeLabel(ev.y - birth, ev.y - cohortBirth);
+
+  const ctlBtn = (on = false) => ({
+    fontSize: 12, fontWeight: 700, cursor: "pointer", padding: "6px 12px",
+    borderRadius: 999, fontFamily: font, lineHeight: 1.2,
+    border: `1px solid ${on ? "#e8b04b" : "#4a5160"}`,
+    background: on ? "#e8b04b" : "transparent",
+    color: on ? "#1b1f27" : "#d7dbe2",
+  });
+
+  return (
+    <div
+      role="dialog"
+      aria-label={`テーマ再生:${thread.title}`}
+      style={{
+        position: "fixed", inset: 0, zIndex: 60, display: "flex", flexDirection: "column",
+        background: "#12151b", color: "#eef1f5", fontFamily: font,
+      }}
+    >
+      {/* 見出し */}
+      <div style={{ padding: "14px 16px 10px", borderBottom: "1px solid #262c36", flexShrink: 0 }}>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 10.5, letterSpacing: "0.2em", color: "#8a93a3" }}>テーマの糸</div>
+            <div style={{ fontSize: 17, fontWeight: 800, marginTop: 3 }}>{thread.title}</div>
+            <div style={{ fontSize: 11.5, color: "#9aa3b2", marginTop: 4, lineHeight: 1.6 }}>
+              {thread.lead}
+            </div>
+          </div>
+          <button onClick={onClose} aria-label="閉じる" style={{ ...ctlBtn(), padding: "6px 10px" }}>
+            ✕
+          </button>
+        </div>
+        <div style={{ marginTop: 8, height: 3, background: "#262c36", borderRadius: 2 }}>
+          <div
+            style={{
+              width: `${((idx + 1) / evs.length) * 100}%`, height: "100%",
+              background: "#e8b04b", borderRadius: 2, transition: "width 0.3s",
+            }}
+          />
+        </div>
+      </div>
+
+      {/* 本体(現在の項目が中央に来るよう自動でスクロールする) */}
+      <div ref={listRef} style={{ flex: 1, overflowY: "auto", padding: "40vh 16px" }}>
+        <div style={{ maxWidth: 640, margin: "0 auto" }}>
+          {evs.map((ev, i) => {
+            const active = i === idx;
+            const color = CAT[ev.cat].color;
+            return (
+              <div
+                key={eid(ev)}
+                data-i={i}
+                onClick={() => go(i)}
+                style={{
+                  padding: active ? "16px 0" : "9px 0", cursor: "pointer",
+                  opacity: active ? 1 : 0.32, transition: "opacity 0.35s",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                  <span
+                    style={{
+                      fontFamily: mono, fontSize: active ? 15 : 13, fontWeight: 700,
+                      color: "#8a93a3", width: 48, flexShrink: 0,
+                    }}
+                  >
+                    {ev.y}
+                  </span>
+                  <span
+                    style={{
+                      flexShrink: 0, fontSize: 11, fontWeight: 800, color: "#12151b",
+                      background: "#c9ced8", borderRadius: 5, padding: "2px 7px", marginTop: 1,
+                    }}
+                  >
+                    {gradeOf(ev)}
+                  </span>
+                  <Icon name={ev.ic} color={color} size={active ? 20 : 16} />
+                  <span
+                    style={{
+                      fontSize: active ? 19 : 14, fontWeight: active ? 800 : 500,
+                      lineHeight: 1.5, flex: 1,
+                    }}
+                  >
+                    {ev.t}
+                  </span>
+                </div>
+                {active && ev.n && (
+                  <div
+                    style={{
+                      marginTop: 10, marginLeft: 58, paddingLeft: 12,
+                      borderLeft: `3px solid ${color}`,
+                      fontSize: 13.5, lineHeight: 1.85, color: "#c9ced8",
+                    }}
+                  >
+                    {ev.n}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {done && (
+            <div style={{ textAlign: "center", marginTop: 24, fontSize: 12.5, color: "#9aa3b2" }}>
+              この糸はここまで。
+              <button onClick={() => go(0)} style={{ ...ctlBtn(), marginLeft: 10 }}>
+                最初から
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 操作 */}
+      <div
+        style={{
+          flexShrink: 0, borderTop: "1px solid #262c36", padding: "10px 16px",
+          display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
+          justifyContent: "center", background: "#171b22",
+        }}
+      >
+        <button onClick={() => go(idx - 1)} style={ctlBtn()} aria-label="前へ">◀</button>
+        <button
+          onClick={() => {
+            if (done) go(0);
+            setPlaying((p) => (done ? true : !p));
+          }}
+          style={{ ...ctlBtn(playing), minWidth: 76 }}
+        >
+          {playing ? "❙❙ 一時停止" : "▶ 再生"}
+        </button>
+        <button onClick={() => go(idx + 1)} style={ctlBtn()} aria-label="次へ">▶</button>
+        <button onClick={() => setTts(!tts)} style={ctlBtn(tts)}>
+          {tts ? "🔊 読み上げ中" : "🔇 読み上げ"}
+        </button>
+        <button
+          onClick={() => setSpeed((s) => (s === 1 ? 1.5 : s === 1.5 ? 2 : 1))}
+          style={ctlBtn(speed !== 1)}
+        >
+          {speed}倍速
+        </button>
+        <span style={{ fontFamily: mono, fontSize: 11.5, color: "#8a93a3" }}>
+          {idx + 1} / {evs.length}
+        </span>
+        <a
+          href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
+            `「${thread.title}」——${thread.lead} ${HASHTAG}`
+          )}&url=${encodeURIComponent(`${SHARE_URL}?t=${thread.key}`)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ ...ctlBtn(), textDecoration: "none" }}
+        >
+          この糸をXで共有
+        </a>
+      </div>
+    </div>
+  );
+}
+
 // ---- 保存(ブラウザのみ。使えない環境では黙ってメモリ動作) ----
 const store = {
   load() {
@@ -372,10 +637,13 @@ export default function App() {
   const [open, setOpen] = useState(() => new Set());
   const [newY, setNewY] = useState("");
   const [newT, setNewT] = useState("");
+  // 再生中のテーマ(nullなら年表を表示)と、読み上げのオン・オフ
+  const [thread, setThread] = useState(null);
+  const [tts, setTts] = useState(SAVED.tts ?? false);
 
   useEffect(() => {
-    store.save({ birth, month, ronin, ryunen, path, adultY, my: myEvents, showSF, showTech, showMusic, showMe, subOff, closed: [...closedStages], setupOpen });
-  }, [birth, month, ronin, ryunen, path, adultY, myEvents, showSF, showTech, showMusic, showMe, subOff, closedStages, setupOpen]);
+    store.save({ birth, month, ronin, ryunen, path, adultY, my: myEvents, showSF, showTech, showMusic, showMe, subOff, closed: [...closedStages], setupOpen, tts });
+  }, [birth, month, ronin, ryunen, path, adultY, myEvents, showSF, showTech, showMusic, showMe, subOff, closedStages, setupOpen, tts]);
 
   const toggleStage = (key) =>
     setClosedStages((prev) => {
@@ -406,8 +674,12 @@ export default function App() {
   };
 
   // ?e=<項目ID> で共有されたリンクは、その項目を開いた状態で表示する
+  // ?t=<テーマのキー> ならそのテーマの再生を開いた状態で始める
   useEffect(() => {
-    const ev = findByShareParam(new URLSearchParams(window.location.search).get("e"));
+    const q = new URLSearchParams(window.location.search);
+    const th = findThread(q.get("t"));
+    if (th) setThread(th);
+    const ev = findByShareParam(q.get("e"));
     if (!ev) return;
     const id = eid(ev);
     setOpen((prev) => new Set(prev).add(id));
@@ -451,7 +723,7 @@ export default function App() {
       const names = [...new Set(g.items.map((e) => eraOf(e.y).label))];
       g.eraSpan = names.join(" → ");
     }
-    return { groups, gradeLabel, shown: list.filter((e) => e.cat !== "me").length };
+    return { groups, gradeLabel, cohortBirth, shown: list.filter((e) => e.cat !== "me").length };
   }, [birth, month, ronin, ryunen, path, adultY, myEvents, showSF, showTech, showMusic, showMe, subOff]);
 
   const font =
@@ -522,6 +794,39 @@ export default function App() {
             />
           </div>
         </header>
+
+        {/* テーマの糸(年表を横断して、関連する項目が順に流れていく自動再生) */}
+        <div
+          style={{
+            background: "#171b22", border: "1px solid #262c36", borderRadius: 12,
+            padding: "12px 16px", marginBottom: 14, color: "#eef1f5",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 13, fontWeight: 700 }}>テーマの糸をたどる</span>
+            <span style={{ fontSize: 11, color: "#9aa3b2" }}>
+              関連する項目が自動で流れます(読み上げつき・{THREAD_LIST.length}本)
+            </span>
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 9 }}>
+            {THREAD_LIST.map((th) => (
+              <button
+                key={th.key}
+                onClick={() => setThread(th)}
+                style={{
+                  fontSize: 11.5, fontWeight: 700, cursor: "pointer", fontFamily: font,
+                  padding: "5px 12px", borderRadius: 999,
+                  border: "1px solid #3d4553", background: "#212734", color: "#e8b04b",
+                }}
+              >
+                ▶ {th.title}
+                <span style={{ color: "#8a93a3", fontFamily: mono, fontSize: 10.5, marginLeft: 6 }}>
+                  {th.events.length}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
 
         {/* 入力欄(畳めるようにしている) */}
         <button
@@ -1080,6 +1385,7 @@ export default function App() {
           学齢は誕生年(月は任意入力)からの学年計算。月を入れると1〜3月の早生まれが1つ上の学年として扱われます(未設定時は4〜12月生まれ相当の概算。日単位の区切りは考慮せず)。各年の出来事は、その年の4月に始まる学年に割り当てています。進路・浪人・留年を設定すると、それ以降の帯がその分だけ変わります。高専は中学卒業後の5年間を一続きの帯として扱います。「社会人になった年度」を入れた場合は進路の計算より優先され、その年度から社会人、卒業から就職までに間があればその期間を「社会人になる前」として表示します。「自分の出来事」はこの端末のブラウザ内にのみ保存され、どこにも送信されません。
           アイコン色:赤=SF作品、青=実テクノロジー、紫=音楽・カルチャー。実テクノロジーと音楽は「興味のある分野」でさらに絞り込めます(各行の右端が分野名)。アイコンは全てオリジナルのラインアイコン。各行をタップすると、現代技術とのつながりを解説する蘊蓄コラムが開きます。各行をタップすると解説が開きます(見出しの帯をタップすると、その期間ごと畳めます)。コラム末尾の「W:」はWikipediaの関連項目、「▶」は外部の解説記事(CPU関連は大原雄介氏のASCII.jp連載)へのリンク、「Amazonで探す/YouTubeで探す」は作品の検索結果へのリンクです(在庫・配信状況は検索先でご確認ください)。
           作品年は原則として発表・放映開始年(日本導入年が別にある場合は両方掲載)。
+          「テーマの糸」は、年表に散らばった項目をひとつの流れとして順に自動再生する読み物モードです。項目は年代順に送られ、解説はブラウザの音声合成で読み上げられます(読み上げボタンで切り替え。速度も変えられます。スペースキーで一時停止、矢印キーで前後、Escで終了)。読み上げの声は端末に入っている日本語音声を使うため、環境によって聞こえ方が変わります。糸ごとの共有リンク(?t=)も発行されます。
           <div style={{ marginTop: 10 }}>
             このアプリは、テクノエッジの連載{" "}
             <a
@@ -1117,6 +1423,18 @@ export default function App() {
           </div>
         </footer>
       </div>
+
+      {thread && (
+        <Theater
+          thread={thread}
+          gradeLabel={grouped.gradeLabel}
+          birth={birth}
+          cohortBirth={grouped.cohortBirth}
+          tts={tts}
+          setTts={setTts}
+          onClose={() => setThread(null)}
+        />
+      )}
     </div>
   );
 }
