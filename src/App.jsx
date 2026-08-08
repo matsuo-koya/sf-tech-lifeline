@@ -366,9 +366,12 @@ const jpVoice = () => {
 // 型番のハイフン(PC-8801など)は音声合成が「の」と読んでしまうので、前後が英数字なら詰めて、
 // それ以外のダッシュ類は空白にして読ませない(長音符「ー」は残す)
 const DASH = /[-‐‑‒–—―]/;
+// 文中のダッシュ(——)は、読み上げでは一拍おく合図として扱う
+export const PAUSE = "\u241f";
 const deDash = (s) =>
   s
     .replace(new RegExp(`([A-Za-z0-9])${DASH.source}([A-Za-z0-9])`, "g"), "$1$2")
+    .replace(new RegExp(`${DASH.source}{2,}`, "g"), PAUSE)
     .replace(new RegExp(DASH.source, "g"), " ");
 // 音声合成が読み違える語は、読みを当てておく(気づいたものを足していく)
 const READINGS = {
@@ -382,6 +385,12 @@ const READINGS = {
   MessagePad: "メッセージパッド",
   PalmPilot: "パームパイロット",
   小穴: "コアナ",
+  MIDI: "ミディ",
+  原型: "ゲンケイ",
+  ILM: "アイエルエム",
+  自撮り: "ジドリ",
+  生成物: "セイセイブツ",
+  SynthID: "シンスアイディー",
 };
 // 単独のローマ数字(MUSIC I、Apple II、ドラゴンクエストIV など)は「アイ」ではなく数として読ませる。
 // UNIXやASCIIの中のIやXを拾わないよう、前後に英字がない場合だけ置き換える(DOS/Vなどの「/」直後も除外。
@@ -405,6 +414,38 @@ const applyReadings = (s) =>
     .replace(ABBR_RE, (_, pre, a) => pre + ABBR[a]);
 const speakText = (ev) =>
   applyReadings(deDash(`${ev.y}年。${ev.t.replace(/[((][^))]*[))]/g, "")}。${ev.n || ""}`));
+
+// 読み上げは文の切れ目で小分けにして順に渡す。長い文章を一度に渡すと、
+// 途中で打ち切られたり読み終わりの合図が来なくなるブラウザがあるため。
+// pause が立っている区切りのあとには一拍おく(本文の「——」の位置)
+const SEG_MAX = 110;
+const splitSentences = (t) =>
+  (t.match(/[^。!?！？]*[。!?！？]?/g) || [])
+    .filter(Boolean)
+    .flatMap((sn) =>
+      [...sn].length > SEG_MAX * 1.6
+        ? sn.split("、").map((x, i, a) => (i < a.length - 1 ? x + "、" : x)).filter(Boolean)
+        : sn
+    );
+const speakSegments = (text) => {
+  const out = [];
+  const chunks = text.split(PAUSE);
+  chunks.forEach((chunk, ci) => {
+    const t = chunk.trim();
+    if (t) {
+      let buf = "";
+      for (const sn of splitSentences(t)) {
+        if (buf && [...(buf + sn)].length > SEG_MAX) {
+          out.push({ t: buf, pause: false });
+          buf = sn;
+        } else buf += sn;
+      }
+      if (buf) out.push({ t: buf, pause: false });
+    }
+    if (ci < chunks.length - 1 && out.length) out[out.length - 1].pause = true;
+  });
+  return out;
+};
 
 // 背景に流す同時代の項目の色(暗い画面で読めるよう、カテゴリー色を明るくしたもの)
 const BG_COLOR = { sf: "#e08b78", tech: "#7fa8dd", music: "#b58cd6" };
@@ -439,23 +480,46 @@ function Theater({ thread, gradeLabel, birth, cohortBirth, tts, setTts, speed, s
     const text = speakText(evs[idx]);
     const synth = typeof window !== "undefined" && window.speechSynthesis;
     if (tts && synth) {
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = "ja-JP";
-      u.rate = speed;
-      const v = jpVoice();
-      if (v) u.voice = v;
-      u.onend = next;
-      u.onerror = next;
+      const segs = speakSegments(text);
+      const voice = jpVoice();
+      let stopped = false, timer = null, watchdog = null;
+      // 長い読み上げが勝手に止まるブラウザ対策(定期的に再開をつつく)
+      const keepAlive = setInterval(() => {
+        try { synth.resume(); } catch {}
+      }, 8000);
+      const speakFrom = (i) => {
+        if (stopped) return;
+        if (i >= segs.length) return next();
+        const seg = segs[i];
+        const u = new SpeechSynthesisUtterance(seg.t);
+        u.lang = "ja-JP";
+        u.rate = speed;
+        if (voice) u.voice = voice;
+        let settled = false;
+        const done = () => {
+          if (settled || stopped) return;
+          settled = true;
+          clearTimeout(watchdog);
+          timer = setTimeout(() => speakFrom(i + 1), seg.pause ? 1000 / speed : 0);
+        };
+        u.onend = done;
+        u.onerror = done;
+        synth.speak(u);
+        // 読み終わりの合図が来ない場合でも止まらないよう、長さから見積もって打ち切る
+        watchdog = setTimeout(done, ([...seg.t].length * 260 + 5000) / speed);
+      };
       synth.cancel();
-      synth.speak(u);
-      // 片付けでハンドラを外してから止める(cancelで次に進んでしまわないように)
+      speakFrom(0);
+      // 片付けでは止めた印を立ててから消す(cancelで次に進んでしまわないように)
       return () => {
-        u.onend = null;
-        u.onerror = null;
+        stopped = true;
+        clearTimeout(timer);
+        clearTimeout(watchdog);
+        clearInterval(keepAlive);
         synth.cancel();
       };
     }
-    const ms = Math.min(16000, 1800 + [...text].length * 70) / speed;
+    const ms = Math.min(16000, 1800 + [...text.split(PAUSE).join("")].length * 70) / speed;
     const timer = setTimeout(next, ms);
     return () => clearTimeout(timer);
   }, [idx, playing, done, tts, speed, evs]);
@@ -882,7 +946,7 @@ export default function App() {
             >
               <span style={{ fontWeight: 700, color: "#37414f" }}>最近の新機能</span>{" "}
               {FEATURES.slice(0, 2).map((f, i) => (
-                <span key={f.d}>
+                <span key={i}>
                   {i > 0 && " / "}
                   <span style={{ fontFamily: mono, fontSize: 10.5 }}>{f.d}</span> {f.t}
                 </span>
