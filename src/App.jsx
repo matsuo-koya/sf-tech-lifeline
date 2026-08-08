@@ -371,9 +371,29 @@ const deDash = (s) =>
     .replace(new RegExp(`([A-Za-z0-9])${DASH.source}([A-Za-z0-9])`, "g"), "$1$2")
     .replace(new RegExp(DASH.source, "g"), " ");
 // 音声合成が読み違える語は、読みを当てておく(気づいたものを足していく)
-const READINGS = { Copilot: "コパイロット" };
+const READINGS = {
+  Copilot: "コパイロット",
+  "Mac OS X": "マックオーエス テン",
+  VOCALOID: "ボーカロイド",
+  MEIKO: "メイコ",
+  KAITO: "カイト",
+};
+// 単独のローマ数字(MUSIC I、Apple II、ドラゴンクエストIV など)は「アイ」ではなく数として読ませる。
+// UNIXやASCIIの中のIやXを拾わないよう、前後に英字がない場合だけ置き換える(DOS/Vなどの「/」直後も除外。
+// Xは単独だとJIS XやX端末と紛らわしいので、対象から外してREADINGSで個別に見る)
+const ROMAN = {
+  I: "ワン", II: "ツー", III: "スリー", IV: "フォー", V: "ファイブ", VI: "シックス",
+  VII: "セブン", VIII: "エイト", IX: "ナイン", XI: "イレブン", XII: "トゥエルブ",
+  XIII: "サーティーン", XIV: "フォーティーン", XV: "フィフティーン",
+};
+const ROMAN_RE = new RegExp(
+  `(^|[^A-Za-z/_])(${Object.keys(ROMAN).sort((a, b) => b.length - a.length).join("|")})(?![A-Za-z])`,
+  "g"
+);
 const applyReadings = (s) =>
-  Object.entries(READINGS).reduce((t, [k, v]) => t.split(k).join(v), s);
+  Object.entries(READINGS)
+    .reduce((t, [k, v]) => t.split(k).join(v), s)
+    .replace(ROMAN_RE, (_, pre, r) => pre + ROMAN[r]);
 const speakText = (ev) =>
   applyReadings(deDash(`${ev.y}年。${ev.t.replace(/[((][^))]*[))]/g, "")}。${ev.n || ""}`));
 
