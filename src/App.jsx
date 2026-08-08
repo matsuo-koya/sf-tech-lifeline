@@ -405,11 +405,10 @@ const speakText = (ev) =>
 const BG_COLOR = { sf: "#e08b78", tech: "#7fa8dd", music: "#b58cd6" };
 const BG_ROWS = 7;
 
-function Theater({ thread, gradeLabel, birth, cohortBirth, tts, setTts, onClose }) {
+function Theater({ thread, gradeLabel, birth, cohortBirth, tts, setTts, speed, setSpeed, onClose }) {
   const evs = thread.events;
   const [idx, setIdx] = useState(0);
   const [playing, setPlaying] = useState(true);
-  const [speed, setSpeed] = useState(1);
   const [done, setDone] = useState(false);
   const listRef = useRef(null);
 
@@ -677,7 +676,7 @@ function Theater({ thread, gradeLabel, birth, cohortBirth, tts, setTts, onClose 
           {tts ? "🔊 読み上げ中" : "🔇 読み上げ"}
         </button>
         <button
-          onClick={() => setSpeed((s) => (s === 1 ? 1.5 : s === 1.5 ? 2 : 1))}
+          onClick={() => setSpeed(speed === 1 ? 1.5 : speed === 1.5 ? 2 : 1)}
           style={ctlBtn(speed !== 1)}
         >
           {speed}倍速
@@ -735,10 +734,12 @@ export default function App() {
   // 再生中のテーマ(nullなら年表を表示)と、読み上げのオン・オフ
   const [thread, setThread] = useState(null);
   const [tts, setTts] = useState(SAVED.tts ?? false);
+  // 再生速度はテーマをまたいでも覚えておく
+  const [speed, setSpeed] = useState(SAVED.speed ?? 1);
 
   useEffect(() => {
-    store.save({ birth, month, ronin, ryunen, path, adultY, my: myEvents, showSF, showTech, showMusic, showMe, subOff, closed: [...closedStages], setupOpen, tts });
-  }, [birth, month, ronin, ryunen, path, adultY, myEvents, showSF, showTech, showMusic, showMe, subOff, closedStages, setupOpen, tts]);
+    store.save({ birth, month, ronin, ryunen, path, adultY, my: myEvents, showSF, showTech, showMusic, showMe, subOff, closed: [...closedStages], setupOpen, tts, speed });
+  }, [birth, month, ronin, ryunen, path, adultY, myEvents, showSF, showTech, showMusic, showMe, subOff, closedStages, setupOpen, tts, speed]);
 
   const toggleStage = (key) =>
     setClosedStages((prev) => {
@@ -1527,6 +1528,8 @@ export default function App() {
           cohortBirth={grouped.cohortBirth}
           tts={tts}
           setTts={setTts}
+          speed={speed}
+          setSpeed={setSpeed}
           onClose={() => setThread(null)}
         />
       )}
