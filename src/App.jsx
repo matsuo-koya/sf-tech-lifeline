@@ -375,6 +375,7 @@ const deDash = (s) =>
     .replace(new RegExp(DASH.source, "g"), " ");
 // 音声合成が読み違える語は、読みを当てておく(気づいたものを足していく)
 const READINGS = {
+  年表: "ネンピョウ",
   Copilot: "コパイロット",
   "Mac OS X": "マックオーエス テン",
   VOCALOID: "ボーカロイド",
@@ -452,6 +453,15 @@ const READINGS = {
   Splendor: "スプレンダー",
   splendor: "スプレンダー",
   PARC: "パーク",
+  ARPANET: "アーパネット",
+  "TCP/IP": "ティーシーピーアイピー",
+  JUNET: "ジェイユーネット",
+  "NIFTY-Serve": "ニフティーサーブ",
+  "バーナーズ=リー": "バーナーズリー",
+  "2-Way": "ツーウェイ",
+  方だ: "ホウダ",
+  一文字: "イチモジ",
+  一文で: "イチブンデ",
   Museum: "ミュージアム",
   museum: "ミュージアム",
   Duplex: "デュープレックス",
@@ -481,13 +491,13 @@ const ABBR_RE = new RegExp(
   `(^|[^A-Za-z0-9])(${Object.keys(ABBR).sort((a, b) => b.length - a.length).join("|")})(?![A-Za-z0-9])`,
   "g"
 );
-const applyReadings = (s) =>
-  Object.entries(READINGS)
-    .reduce((t, [k, v]) => t.split(k).join(v), s)
-    .replace(ROMAN_RE, (_, pre, r) => pre + ROMAN[r])
-    .replace(ABBR_RE, (_, pre, a) => pre + ABBR[a]);
+// 見出し語の読みは元の表記のまま当て(ハイフンを詰める前に実行する)、
+// ローマ数字と略語の規則はそのあとで見る
+const applyReadings = (s) => Object.entries(READINGS).reduce((t, [k, v]) => t.split(k).join(v), s);
+const applyTokens = (s) =>
+  s.replace(ROMAN_RE, (_, pre, r) => pre + ROMAN[r]).replace(ABBR_RE, (_, pre, a) => pre + ABBR[a]);
 const speakText = (ev) =>
-  applyReadings(deDash(`${ev.y}年。${ev.t.replace(/[((][^))]*[))]/g, "")}。${ev.n || ""}`));
+  applyTokens(deDash(applyReadings(`${ev.y}年。${ev.t.replace(/[((][^))]*[))]/g, "")}。${ev.n || ""}`)));
 
 // 読み上げは文の切れ目で小分けにして順に渡す。長い文章を一度に渡すと、
 // 途中で打ち切られたり読み終わりの合図が来なくなるブラウザがあるため。
