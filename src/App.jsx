@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from "react";
-import { EVENTS } from "./events";
-import { THREADS } from "./threads";
+import EVENTS from "./events.json";
+import THREADS from "./threads.json";
 
 // ---- ラインアイコン(全て自作SVG・権利フリー) ----
 const P = {
@@ -966,6 +966,8 @@ export default function App() {
   const [tts, setTts] = useState(SAVED.tts ?? false);
   // 再生速度はテーマをまたいでも覚えておく
   const [speed, setSpeed] = useState(SAVED.speed ?? 1);
+  // 項目提案モーダル
+  const [propOpen, setPropOpen] = useState(false);
 
   useEffect(() => {
     store.save({ birth, month, ronin, ryunen, path, adultY, my: myEvents, showSF, showTech, showMusic, showMe, subOff, closed: [...closedStages], setupOpen, tts, speed });
@@ -1711,6 +1713,16 @@ export default function App() {
           <ShareBar
             text={`あのSFに、何年生で出会ったか——SF・コンピューター技術ライフライン(${EVENTS.length}項目) ${HASHTAG}`}
           />
+          <button
+            onClick={() => setPropOpen(true)}
+            style={{
+              fontSize: 11.5, fontWeight: 700, cursor: "pointer",
+              borderRadius: 999, padding: "4px 12px",
+              border: "1px solid #5b8c5e44", background: "#e8f5e9", color: "#2e6b32",
+            }}
+          >
+            項目を提案
+          </button>
         </div>
 
         <footer style={{ fontSize: 11, color: "#8a8f98", marginTop: 28, lineHeight: 1.8 }}>
@@ -1769,6 +1781,10 @@ export default function App() {
           onClose={() => setThread(null)}
         />
       )}
+
+      {propOpen && (
+        <ProposalForm onClose={() => setPropOpen(false)} />
+      )}
     </div>
   );
 }
@@ -1790,3 +1806,187 @@ const miniBtn = {
   fontSize: 11, fontWeight: 700, cursor: "pointer", padding: "4px 10px",
   borderRadius: 999, border: "1px solid #d5d8dd", background: "#fff", color: "#6b7280",
 };
+
+// ---- 項目提案フォーム ----
+const REPO_OWNER = "matsuo-koya";
+const REPO_NAME = "sf-tech-lifeline";
+
+function ProposalForm({ onClose }) {
+  const [entries, setEntries] = useState([
+    { y: "", t: "", cat: "tech", s: "pc", ic: "chip", n: "", l: "", q: "" },
+  ]);
+
+  const update = (idx, field, val) =>
+    setEntries((prev) => prev.map((e, i) => (i === idx ? { ...e, [field]: val } : e)));
+
+  const addEntry = () =>
+    setEntries((prev) => [...prev, { y: "", t: "", cat: "tech", s: "pc", ic: "chip", n: "", l: "", q: "" }]);
+
+  const removeEntry = (idx) =>
+    setEntries((prev) => prev.filter((_, i) => i !== idx));
+
+  const validEntries = entries.filter((e) => e.y && e.t.trim());
+
+  const buildIssueURL = () => {
+    const title = validEntries.length === 1
+      ? `項目提案: ${validEntries[0].t}`
+      : `項目提案(${validEntries.length}件): ${validEntries[0].t} ほか`;
+
+    let body = "";
+    validEntries.forEach((e, i) => {
+      if (i === 0) {
+        // 最初の項目はIssue template形式
+        body += `### 年\n\n${e.y}\n\n`;
+        body += `### タイトル\n\n${e.t}\n\n`;
+        body += `### カテゴリ\n\n- ${e.cat}\n\n`;
+        body += `### 分野\n\n- ${e.s}\n\n`;
+        body += `### アイコン名\n\n${e.ic}\n\n`;
+        body += `### 解説\n\n${e.n}\n\n`;
+        body += `### Wikipediaリンク\n\n${e.l}\n\n`;
+        body += `### 検索クエリ\n\n${e.q}\n\n`;
+        if (validEntries.length > 1) {
+          body += `### 複数項目の一括提案\n\n`;
+          validEntries.slice(1).forEach((e2, j) => {
+            body += `### ${j + 2}\n`;
+            body += `- 年: ${e2.y}\n`;
+            body += `- タイトル: ${e2.t}\n`;
+            body += `- カテゴリ: ${e2.cat}\n`;
+            body += `- 分野: ${e2.s}\n`;
+            body += `- アイコン: ${e2.ic}\n`;
+            body += `- 解説: ${e2.n}\n`;
+            if (e2.l) body += `- リンク: ${e2.l}\n`;
+            if (e2.q) body += `- 検索クエリ: ${e2.q}\n`;
+            body += "\n";
+          });
+          body += `### 確認事項\n\n- [x] 同一出来事が既に年表に存在しないことを確認しました\n`;
+        }
+      }
+    });
+
+    return `https://github.com/${REPO_OWNER}/${REPO_NAME}/issues/new?` +
+      `title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}&labels=item-proposal`;
+  };
+
+  const inputStyle = {
+    width: "100%", padding: "6px 8px", borderRadius: 6,
+    border: "1px solid #d5d8dd", fontSize: 13, fontFamily: "inherit",
+  };
+  const labelStyle = { fontSize: 11, fontWeight: 600, color: "#6b7280", marginBottom: 2, display: "block" };
+  const fieldStyle = { flex: 1, minWidth: 80 };
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.4)",
+        display: "flex", alignItems: "flex-start", justifyContent: "center",
+        overflowY: "auto", padding: "24px 12px",
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: "#fff", borderRadius: 12, maxWidth: 560, width: "100%",
+          padding: 20, boxShadow: "0 8px 32px rgba(0,0,0,0.2)", marginBottom: 24,
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>年表に項目を提案</h2>
+          <button onClick={onClose} style={{ ...btnStyle, width: 28, height: 28, fontSize: 15 }}>×</button>
+        </div>
+
+        <p style={{ fontSize: 12, color: "#6b7280", marginBottom: 14, lineHeight: 1.6 }}>
+          フォームに入力して「GitHub Issueを作成」ボタンを押すと、GitHubのIssue作成ページが開きます。
+          複数項目を一度に提案できます。提案はメンテナーがレビュー後に年表へ追加します。
+        </p>
+
+        {entries.map((e, idx) => (
+          <div key={idx} style={{
+            border: "1px solid #e5e7eb", borderRadius: 8, padding: 12, marginBottom: 10,
+            background: "#fafbfc",
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: "#6b7280" }}>項目 {idx + 1}</span>
+              {entries.length > 1 && (
+                <button onClick={() => removeEntry(idx)} style={{ ...miniBtn, color: "#c0413b", borderColor: "#c0413b44" }}>削除</button>
+              )}
+            </div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <div style={{ width: 70 }}>
+                <label style={labelStyle}>年</label>
+                <input type="number" value={e.y} onChange={(ev) => update(idx, "y", ev.target.value)} style={inputStyle} placeholder="2007" />
+              </div>
+              <div style={fieldStyle}>
+                <label style={labelStyle}>タイトル</label>
+                <input type="text" value={e.t} onChange={(ev) => update(idx, "t", ev.target.value)} style={inputStyle} placeholder="初音ミク発売" />
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6 }}>
+              <div style={{ width: 110 }}>
+                <label style={labelStyle}>カテゴリ</label>
+                <select value={e.cat} onChange={(ev) => update(idx, "cat", ev.target.value)} style={inputStyle}>
+                  <option value="tech">tech (技術)</option>
+                  <option value="sf">sf (SF作品)</option>
+                  <option value="music">music (音楽)</option>
+                </select>
+              </div>
+              <div style={{ width: 130 }}>
+                <label style={labelStyle}>分野</label>
+                <select value={e.s} onChange={(ev) => update(idx, "s", ev.target.value)} style={inputStyle}>
+                  {Object.entries(SUBS).map(([k, v]) => (
+                    <option key={k} value={k}>{v.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div style={{ width: 90 }}>
+                <label style={labelStyle}>アイコン</label>
+                <input type="text" value={e.ic} onChange={(ev) => update(idx, "ic", ev.target.value)} style={inputStyle} placeholder="music" />
+              </div>
+            </div>
+            <div style={{ marginTop: 6 }}>
+              <label style={labelStyle}>解説（現代技術とのつながり）</label>
+              <textarea value={e.n} onChange={(ev) => update(idx, "n", ev.target.value)} style={{ ...inputStyle, minHeight: 60, resize: "vertical" }} placeholder="解説を入力..." />
+            </div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6 }}>
+              <div style={fieldStyle}>
+                <label style={labelStyle}>Wikipediaリンク（カンマ区切り）</label>
+                <input type="text" value={e.l} onChange={(ev) => update(idx, "l", ev.target.value)} style={inputStyle} placeholder="初音ミク, en:Vocaloid" />
+              </div>
+              <div style={{ width: 140 }}>
+                <label style={labelStyle}>検索クエリ（任意）</label>
+                <input type="text" value={e.q} onChange={(ev) => update(idx, "q", ev.target.value)} style={inputStyle} placeholder="初音ミク 2007" />
+              </div>
+            </div>
+          </div>
+        ))}
+
+        <button
+          onClick={addEntry}
+          style={{ ...miniBtn, fontSize: 12, padding: "6px 14px", marginBottom: 14, border: "1px solid #5b8c5e44", color: "#2e6b32", background: "#e8f5e9" }}
+        >
+          + 項目を追加
+        </button>
+
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <a
+            href={validEntries.length > 0 ? buildIssueURL() : "#"}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(ev) => { if (validEntries.length === 0) ev.preventDefault(); }}
+            style={{
+              display: "inline-block", fontSize: 13, fontWeight: 700, textDecoration: "none",
+              padding: "8px 16px", borderRadius: 8, cursor: validEntries.length > 0 ? "pointer" : "not-allowed",
+              background: validEntries.length > 0 ? "#2e6b32" : "#ccc", color: "#fff",
+            }}
+          >
+            GitHub Issueを作成 ({validEntries.length}件)
+          </a>
+          <button onClick={onClose} style={{ ...miniBtn, fontSize: 12, padding: "8px 14px" }}>キャンセル</button>
+        </div>
+        {validEntries.length === 0 && (
+          <p style={{ fontSize: 11, color: "#c0413b", marginTop: 8 }}>年とタイトルを入力してください</p>
+        )}
+      </div>
+    </div>
+  );
+}

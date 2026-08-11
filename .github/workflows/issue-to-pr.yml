@@ -1,0 +1,62 @@
+name: Issue to PR (Item Proposal)
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  issue-to-pr:
+    if: contains(github.event.label.name, 'item-proposal')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Parse issue and update events.json
+        env:
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: node scripts/issue-to-entry.mjs
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: item-proposal-${{ github.event.issue.number }}
+          commit-message: "項目追加 (Issue #${{ github.event.issue.number }})"
+          title: "項目提案: ${{ github.event.issue.title }}"
+          body: |
+            ## 概要
+
+            Issue #${{ github.event.issue.number }} から自動生成されたPRです。
+
+            ### 追加項目
+
+            元の提案: ${{ github.event.issue.title }}
+
+            ---
+
+            _このPRは Issue に `item-proposal` ラベルが付けられた際に自動生成されました。_
+            _Closes #${{ github.event.issue.number }}_
+          labels: "auto-generated,item-proposal"
+          delete-branch: true
+
+      - name: Comment on issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `✅ 項目提案を受け付けました！ Pull Request を自動生成しました。
+              メンテナーがレビュー後にマージします。`
+            })

@@ -1,0 +1,128 @@
+name: 項目提案
+description: 年表に新しい項目を提案する
+labels: ["item-proposal"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        年表への項目提案ありがとうございます！
+        以下のフォームに記入してください。複数項目を一度に提案できます。
+
+        **複数項目の場合**: 最初の項目を記入後、「複数項目を追加」セクションに追記してください。
+
+  - type: input
+    id: year
+    attributes:
+      label: 年
+      placeholder: "2007"
+    validations:
+      required: true
+
+  - type: input
+    id: title
+    attributes:
+      label: タイトル
+      placeholder: "初音ミク発売"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: カテゴリ
+      options:
+        - tech (実テクノロジー)
+        - sf (SF作品)
+        - music (音楽・カルチャー)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: sub
+    attributes:
+      label: 分野（tech/musicの場合）
+      description: SF作品の場合は不要です
+      options:
+        - pc (コンピューター)
+        - ai (AI)
+        - net (ネット・インフラ)
+        - sns (SNS・ネット文化)
+        - mobile (モバイル・通信)
+        - game (ゲーム)
+        - inst (楽器・DTM)
+        - audio (オーディオ)
+        - video (映像・カメラ・CG)
+        - wear (ウェアラブル)
+        - tablet (タブレット・電子書籍)
+        - xr (VR・AR)
+        - robot (ロボット)
+        - space (宇宙・測位)
+        - quantum (量子)
+        - boom (ブーム・社会現象)
+        - other (その他)
+        - artist_w (洋楽アーティスト)
+        - artist_j (邦楽アーティスト)
+
+  - type: input
+    id: icon
+    attributes:
+      label: アイコン名
+      description: "chip, computer, ai, book, rocket, satellite, phone, wifi, globe, gamepad, music, video, film, tv, watch, robot, camera 等"
+      placeholder: "music"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 解説
+      description: 現代技術とのつながりを含めた解説を書いてください
+      placeholder: "クリプトン・フューチャー・メディアが発売した音声合成ソフトウェア..."
+    validations:
+      required: true
+
+  - type: input
+    id: links
+    attributes:
+      label: Wikipediaリンク（カンマ区切り）
+      description: "記事名をカンマ区切りで。en:付けると英語版。例: 初音ミク, en:Vocaloid"
+      placeholder: "初音ミク"
+
+  - type: input
+    id: query
+    attributes:
+      label: 検索クエリ（任意）
+      description: Amazon/YouTube検索用クエリ
+      placeholder: "初音ミク 2007"
+
+  - type: textarea
+    id: batch
+    attributes:
+      label: 複数項目の一括提案（任意）
+      description: |
+        追加の項目がある場合は、以下の形式で記入してください（AI生成データもこの形式で貼り付けられます）:
+
+        ```markdown
+        ### 2
+        - 年: 2008
+        - タイトル: iPhone 3G 日本上陸
+        - カテゴリ: tech
+        - 分野: mobile
+        - アイコン: phone
+        - 解説: ...
+        - リンク: iPhone 3G
+
+        ### 3
+        - 年: ...
+        ```
+      placeholder: "### 2\n- 年: 2008\n- タイトル: iPhone 3G 日本上陸\n- カテゴリ: tech\n- 分野: mobile\n- アイコン: phone\n- 解説: ...\n- リンク: iPhone 3G"
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: 確認事項
+      options:
+        - label: 同一出来事が既に年表に存在しないことを確認しました
+          required: true
+        - label: Wikipediaリンク先が実際に存在することを確認しました
+          required: false
