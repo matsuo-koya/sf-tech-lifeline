@@ -456,6 +456,7 @@ const READINGS = {
   PARC: "パーク",
   "Synthesizer V": "シンセサイザーブイ",
   "I/O": "アイオー",
+  "I'm perfect": "アイム・パーフェクト",
   "Z・X・C・V": "ゼット、エックス、シー、ブイ",
   ARPANET: "アーパネット",
   "TCP/IP": "ティーシーピーアイピー",
