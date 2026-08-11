@@ -363,11 +363,11 @@ const jpVoice = () => {
   }
 };
 
-// 読み上げ用のテキスト。括弧の中の補足は読み飛ばす。
+// 読み上げ用のテキスト。
 // 型番のハイフン(PC-8801など)は音声合成が「の」と読んでしまうので、前後が英数字なら詰めて、
 // それ以外のダッシュ類は空白にして読ませない(長音符「ー」は残す)
 const DASH = /[-‐‑‒–—―]/;
-// 文中のダッシュ(——)は、読み上げでは一拍おく合図として扱う
+// 文中のダッシュ(——)は、読み上げでは半拍おく合図として扱う
 export const PAUSE = "\u241f";
 const deDash = (s) =>
   s
@@ -454,6 +454,9 @@ const READINGS = {
   Splendor: "スプレンダー",
   splendor: "スプレンダー",
   PARC: "パーク",
+  "Synthesizer V": "シンセサイザーブイ",
+  "I/O": "アイオー",
+  "Z・X・C・V": "ゼット、エックス、シー、ブイ",
   ARPANET: "アーパネット",
   "TCP/IP": "ティーシーピーアイピー",
   JUNET: "ジェイユーネット",
@@ -483,7 +486,7 @@ const ROMAN = {
   XIII: "サーティーン", XIV: "フォーティーン", XV: "フィフティーン",
 };
 const ROMAN_RE = new RegExp(
-  `(^|[^A-Za-z/_])(${Object.keys(ROMAN).sort((a, b) => b.length - a.length).join("|")})(?![A-Za-z])`,
+  `(^|[^A-Za-z/_])(${Object.keys(ROMAN).sort((a, b) => b.length - a.length).join("|")})(?![A-Za-z'/])`,
   "g"
 );
 // 単独の略語も読みを当てる(AIは「アイ」と読まれてしまうため)。OpenAIのように語の一部なら触らない
@@ -497,8 +500,10 @@ const ABBR_RE = new RegExp(
 const applyReadings = (s) => Object.entries(READINGS).reduce((t, [k, v]) => t.split(k).join(v), s);
 const applyTokens = (s) =>
   s.replace(ROMAN_RE, (_, pre, r) => pre + ROMAN[r]).replace(ABBR_RE, (_, pre, a) => pre + ABBR[a]);
+// 括弧の中の補足(年号や原語表記)は読み飛ばす
+const dropParens = (s) => s.replace(/[((][^))]*[))]/g, "").replace(/[、,]\s*。/g, "。");
 const speakText = (ev) =>
-  applyTokens(deDash(applyReadings(`${ev.y}年。${ev.t.replace(/[((][^))]*[))]/g, "")}。${ev.n || ""}`)));
+  applyTokens(deDash(applyReadings(dropParens(`${ev.y}年。${ev.t}。${ev.n || ""}`))));
 
 // 読み上げは文の切れ目で小分けにして順に渡す。長い文章を一度に渡すと、
 // 途中で打ち切られたり読み終わりの合図が来なくなるブラウザがあるため。
@@ -571,7 +576,7 @@ const speakChunks = (text, { rate = 1, onEnd } = {}) => {
       if (settled || stopped) return;
       settled = true;
       clearTimeout(watchdog);
-      timer = setTimeout(() => speakFrom(i + 1), seg.pause ? 1000 / rate : 0);
+      timer = setTimeout(() => speakFrom(i + 1), seg.pause ? 500 / rate : 0);
     };
     u.onend = done;
     u.onerror = done;
