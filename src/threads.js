@@ -16,6 +16,7 @@ export const THREADS = [
       { y: 2016, m: "WaveNet" },
       { y: 2022, m: "歌声合成と歌声変換" },
       { y: 2024, m: "Suno" },
+      { y: 2025, m: "Yumi AraI" },
     ],
   },
   {
