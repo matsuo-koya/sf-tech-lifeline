@@ -203,6 +203,7 @@ const RECENT = (() => {
 
 // ---- 最近の新機能(手で追記する) ----
 const FEATURES = [
+  { d: "2026-08-11", t: "各項目の解説にも読み上げボタンを付けました(テーマ再生と同じ読み方の辞書を使うので、原稿の読み合わせにも使えます)" },
   { d: "2026-08-08", t: "「テーマの糸」を追加しました。歌声合成やCG、ネット文化、宇宙観測など20本のテーマを選ぶと、関連項目が年代順に自動再生されます(読み上げ・速度切り替えつき。左右の背景には同じころの別ジャンルの出来事が薄く流れます)" },
   { d: "2026-08-08", t: "すべての帯に技術史の時代(大型計算機/PC/インターネット/Web 2.0/スマートフォン/AI)を併記し、「社会人」と「生まれる前」は時代ごとに折りたためるようにしました" },
   { d: "2026-08-06", t: "期間ごと・入力欄の折りたたみ、解説つきのSNS投稿、項目数と文字数の表示を追加しました" },
@@ -535,6 +536,114 @@ const speakSegments = (text) => {
 const BG_COLOR = { sf: "#e08b78", tech: "#7fa8dd", music: "#b58cd6" };
 const BG_ROWS = 7;
 
+// 文単位に分けて順に読み上げる。戻り値を呼ぶと止まる
+const speakChunks = (text, { rate = 1, onEnd } = {}) => {
+  const synth = typeof window !== "undefined" && window.speechSynthesis;
+  if (!synth) return () => {};
+  const segs = speakSegments(text);
+  const voice = jpVoice();
+  let stopped = false, timer = null, watchdog = null;
+  // 長い読み上げが勝手に止まるブラウザ対策(定期的に再開をつつく)
+  const keepAlive = setInterval(() => {
+    try { synth.resume(); } catch {}
+  }, 8000);
+  const stop = () => {
+    stopped = true;
+    clearTimeout(timer);
+    clearTimeout(watchdog);
+    clearInterval(keepAlive);
+    synth.cancel();
+  };
+  const speakFrom = (i) => {
+    if (stopped) return;
+    if (i >= segs.length) {
+      clearInterval(keepAlive);
+      onEnd?.();
+      return;
+    }
+    const seg = segs[i];
+    const u = new SpeechSynthesisUtterance(seg.t);
+    u.lang = "ja-JP";
+    u.rate = rate;
+    if (voice) u.voice = voice;
+    let settled = false;
+    const done = () => {
+      if (settled || stopped) return;
+      settled = true;
+      clearTimeout(watchdog);
+      timer = setTimeout(() => speakFrom(i + 1), seg.pause ? 1000 / rate : 0);
+    };
+    u.onend = done;
+    u.onerror = done;
+    synth.speak(u);
+    // 読み終わりの合図が来ない場合でも止まらないよう、長さから見積もって打ち切る
+    watchdog = setTimeout(done, ([...seg.t].length * 260 + 5000) / rate);
+  };
+  synth.cancel();
+  speakFrom(0);
+  return stop;
+};
+
+// 同時に喋るのは一つだけにする。割り込まれた側にはonCancelで知らせる
+let active = null;
+const stopSpeaking = () => {
+  const a = active;
+  active = null;
+  if (!a) return;
+  a.cancel();
+  a.onCancel?.();
+};
+const startSpeaking = (text, { rate = 1, onEnd, onCancel } = {}) => {
+  stopSpeaking();
+  const entry = { onCancel };
+  entry.cancel = speakChunks(text, {
+    rate,
+    onEnd: () => {
+      if (active === entry) active = null;
+      onEnd?.();
+    },
+  });
+  active = entry;
+  // 呼び出し側から止めるときは、割り込み扱いにしない
+  return () => {
+    if (active === entry) active = null;
+    entry.cancel();
+  };
+};
+
+// 項目ごとの読み上げボタン(記事を書くときの読み合わせにも使える)
+function SpeakButton({ ev, rate, color }) {
+  const [on, setOn] = useState(false);
+  const stopRef = useRef(null);
+  useEffect(() => () => stopRef.current?.(), []);
+  const toggle = () => {
+    if (on) {
+      stopRef.current?.();
+      stopRef.current = null;
+      setOn(false);
+      return;
+    }
+    const off = () => {
+      stopRef.current = null;
+      setOn(false);
+    };
+    stopRef.current = startSpeaking(speakText(ev), { rate, onEnd: off, onCancel: off });
+    setOn(true);
+  };
+  return (
+    <button
+      onClick={toggle}
+      style={{
+        fontSize: 11.5, fontWeight: 700, cursor: "pointer", padding: "3px 12px",
+        borderRadius: 999, border: `1px solid ${color}44`,
+        background: on ? color : "#ffffffaa", color: on ? "#fff" : color,
+      }}
+    >
+      {on ? "■ 停止" : "🔊 読み上げ"}
+    </button>
+  );
+}
+
 function Theater({ thread, gradeLabel, birth, cohortBirth, tts, setTts, speed, setSpeed, onClose }) {
   const evs = thread.events;
   const [idx, setIdx] = useState(0);
@@ -562,46 +671,8 @@ function Theater({ thread, gradeLabel, birth, cohortBirth, tts, setTts, speed, s
       }
     };
     const text = speakText(evs[idx]);
-    const synth = typeof window !== "undefined" && window.speechSynthesis;
-    if (tts && synth) {
-      const segs = speakSegments(text);
-      const voice = jpVoice();
-      let stopped = false, timer = null, watchdog = null;
-      // 長い読み上げが勝手に止まるブラウザ対策(定期的に再開をつつく)
-      const keepAlive = setInterval(() => {
-        try { synth.resume(); } catch {}
-      }, 8000);
-      const speakFrom = (i) => {
-        if (stopped) return;
-        if (i >= segs.length) return next();
-        const seg = segs[i];
-        const u = new SpeechSynthesisUtterance(seg.t);
-        u.lang = "ja-JP";
-        u.rate = speed;
-        if (voice) u.voice = voice;
-        let settled = false;
-        const done = () => {
-          if (settled || stopped) return;
-          settled = true;
-          clearTimeout(watchdog);
-          timer = setTimeout(() => speakFrom(i + 1), seg.pause ? 1000 / speed : 0);
-        };
-        u.onend = done;
-        u.onerror = done;
-        synth.speak(u);
-        // 読み終わりの合図が来ない場合でも止まらないよう、長さから見積もって打ち切る
-        watchdog = setTimeout(done, ([...seg.t].length * 260 + 5000) / speed);
-      };
-      synth.cancel();
-      speakFrom(0);
-      // 片付けでは止めた印を立ててから消す(cancelで次に進んでしまわないように)
-      return () => {
-        stopped = true;
-        clearTimeout(timer);
-        clearTimeout(watchdog);
-        clearInterval(keepAlive);
-        synth.cancel();
-      };
+    if (tts && typeof window !== "undefined" && window.speechSynthesis) {
+      return startSpeaking(text, { rate: speed, onEnd: next });
     }
     const ms = Math.min(16000, 1800 + [...text.split(PAUSE).join("")].length * 70) / speed;
     const timer = setTimeout(next, ms);
@@ -1564,7 +1635,13 @@ export default function App() {
                             })}
                           </div>
                         )}
-                        <div style={{ marginTop: 10, paddingTop: 8, borderTop: "1px dashed #d5d8dd" }}>
+                        <div
+                          style={{
+                            marginTop: 10, paddingTop: 8, borderTop: "1px dashed #d5d8dd",
+                            display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
+                          }}
+                        >
+                          <SpeakButton ev={ev} rate={speed} color={CAT[ev.cat].color} />
                           <ShareBar
                             compact
                             color={CAT[ev.cat].color}
@@ -1634,7 +1711,7 @@ export default function App() {
           学齢は誕生年(月は任意入力)からの学年計算。月を入れると1〜3月の早生まれが1つ上の学年として扱われます(未設定時は4〜12月生まれ相当の概算。日単位の区切りは考慮せず)。各年の出来事は、その年の4月に始まる学年に割り当てています。進路・浪人・留年を設定すると、それ以降の帯がその分だけ変わります。高専は中学卒業後の5年間を一続きの帯として扱います。「社会人になった年度」を入れた場合は進路の計算より優先され、その年度から社会人、卒業から就職までに間があればその期間を「社会人になる前」として表示します。「自分の出来事」はこの端末のブラウザ内にのみ保存され、どこにも送信されません。
           アイコン色:赤=SF作品、青=実テクノロジー、紫=音楽・カルチャー。実テクノロジーと音楽は「興味のある分野」でさらに絞り込めます(各行の右端が分野名)。アイコンは全てオリジナルのラインアイコン。各行をタップすると、現代技術とのつながりを解説する蘊蓄コラムが開きます。各行をタップすると解説が開きます(見出しの帯をタップすると、その期間ごと畳めます)。コラム末尾の「W:」はWikipediaの関連項目、「▶」は外部の解説記事(CPU関連は大原雄介氏のASCII.jp連載)へのリンク、「Amazonで探す/YouTubeで探す」は作品の検索結果へのリンクです(在庫・配信状況は検索先でご確認ください)。
           作品年は原則として発表・放映開始年(日本導入年が別にある場合は両方掲載)。
-          「テーマの糸」は、年表に散らばった項目をひとつの流れとして順に自動再生する読み物モードです。項目は年代順に送られ、解説はブラウザの音声合成で読み上げられます(読み上げボタンで切り替え。速度も変えられます。スペースキーで一時停止、矢印キーで前後、Escで終了)。読み上げの声は端末に入っている日本語音声を使うため、環境によって聞こえ方が変わります。糸ごとの共有リンク(?t=)も発行されます。左右の背景に薄く流れているのは、その項目と同じころに起きていた別ジャンルの出来事です。
+          「テーマの糸」は、年表に散らばった項目をひとつの流れとして順に自動再生する読み物モードです。項目は年代順に送られ、解説はブラウザの音声合成で読み上げられます(読み上げボタンで切り替え。速度も変えられます。スペースキーで一時停止、矢印キーで前後、Escで終了)。読み上げの声は端末に入っている日本語音声を使うため、環境によって聞こえ方が変わります。糸ごとの共有リンク(?t=)も発行されます。各項目の解説を開いたときに出る「読み上げ」ボタンでも、同じ読み方でその項目だけを読ませられます(速度はテーマ再生で設定したものを使います)。左右の背景に薄く流れているのは、その項目と同じころに起きていた別ジャンルの出来事です。
           <div style={{ marginTop: 10 }}>
             このアプリは、テクノエッジの連載{" "}
             <a
